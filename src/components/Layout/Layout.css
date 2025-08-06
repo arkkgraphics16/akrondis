@@ -1,0 +1,9 @@
+header, footer {
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+main {
+  min-height: calc(100vh - 6rem);
+}

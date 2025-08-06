@@ -1,24 +1,54 @@
 // src/pages/NewGoalPage/NewGoalPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './NewGoalPage.css';
 import { toUTCDate, toISOStringUTC } from '../../utils/timeUtils';
 import { addGoal } from '../../utils/firestoreService';
+import { Spinner } from '../../components/Spinner/Spinner';
+import { useToast } from '../../components/Toast/ToastContext';
 
-const GOAL_STATUS = { DOING: 'Doing It', HELP: 'Need Help', DONE: 'Done' };
+const DRAFT_KEY = 'akrondis:newGoalDraft';
 
 export function NewGoalPage() {
-  const [discordTag, setTag]   = useState('');
-  const [discordName, setName] = useState('');
-  const [content, setContent]  = useState('');
-  const [deadline, setDeadline]= useState('');
-  const [error, setError]      = useState('');
-  const [loading, setLoading]  = useState(false);
+  const addToast = useToast();
+  const [discordTag, setTag]       = useState('');
+  const [discordName, setName]     = useState('');
+  const [content, setContent]      = useState('');
+  const [deadline, setDeadline]    = useState('');
+  const [error, setError]          = useState('');
+  const [loading, setLoading]      = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (saved) {
+      try {
+        const { discordTag, discordName, content, deadline } = JSON.parse(saved);
+        setTag(discordTag);
+        setName(discordName);
+        setContent(content);
+        setDeadline(deadline);
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    const draft = { discordTag, discordName, content, deadline };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }, [discordTag, discordName, content, deadline]);
 
   const validate = () => {
-    if (!/^[\w]{2,32}#\d{4}$/.test(discordTag)) return 'Tag must be like arkk#1234';
-    if (!content.trim()) return 'Goal content required';
-    if (!deadline) return 'Deadline required';
-    if (toUTCDate(deadline) <= new Date()) return 'Deadline can’t be in the past';
+    if (!/^[\w]{2,32}#[0-9]{4}$/.test(discordTag)) {
+      return 'Tag must be like arkk#1234';
+    }
+    if (!content.trim()) {
+      return 'Goal content required';
+    }
+    if (!deadline) {
+      return 'Deadline required';
+    }
+    const utc = toUTCDate(deadline);
+    if (utc <= new Date()) {
+      return 'Deadline can’t be in the past';
+    }
     return '';
   };
 
@@ -36,20 +66,24 @@ export function NewGoalPage() {
         discordTag,
         content,
         utcDeadline: utc,
-        status: GOAL_STATUS.DOING,
+        status: 'Doing It',
       });
-      alert('Goal added!');
-      setTag(''); setName(''); setContent(''); setDeadline('');
-    } catch {
+      localStorage.removeItem(DRAFT_KEY);
+      setTag('');
+      setName('');
+      setContent('');
+      setDeadline('');
+      addToast('Goal added successfully!');
+    } catch (e) {
+      console.error(e);
       setError('Save failed, try again');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (
-    <main className="page new-goal">
-      <h1>Create Goal</h1>
+    <main className="page new-goal-page">
+      <h1>Create New Goal</h1>
       <form onSubmit={handleSubmit}>
         <fieldset disabled={loading}>
           <label>
@@ -62,27 +96,22 @@ export function NewGoalPage() {
               required
             />
           </label>
-
           <label>
-            Discord Name (opt)
+            Discord Name (optional)
             <input
               value={discordName}
               onChange={e => setName(e.target.value)}
-              placeholder="Arkk"
+              placeholder="e.g. Arkks"
             />
           </label>
-
           <label>
-            Goal *
+            Goal Content *
             <textarea
-              rows={4}
               value={content}
               onChange={e => setContent(e.target.value)}
-              aria-label="Goal description"
               required
             />
           </label>
-
           <label>
             Deadline *
             <input
@@ -92,23 +121,12 @@ export function NewGoalPage() {
               required
             />
           </label>
-
-          {error && <p className="error">{error}</p>}
-
-          <button type="submit" className="btn" disabled={loading}>
-            {loading ? <Spinner /> : 'Save Goal'}
-          </button>
         </fieldset>
+        {error && <p className="error">{error}</p>}
+        <button type="submit">
+          {loading ? <Spinner /> : 'Save Goal'}
+        </button>
       </form>
     </main>
-  );
-}
-
-// Inline spinner component (module style)
-function Spinner() {
-  return (
-    <svg className="spinner" width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" strokeDasharray="11 44" />
-    </svg>
-  );
+);
 }
