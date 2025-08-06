@@ -1,20 +1,26 @@
 /* src/styles/global.css */
-:root {
-  --color-bg: #0E1B24;
-  --color-primary: #00C2FF;
-  --color-secondary: #A8F1FF;
-  --color-text: #FFFFFF;
-  --color-muted: #A0AAB8;
+:root{
+  --bg: #0f172a;          /* deep navy */
+  --surface: #1e293b;     /* card bg */
+  --surface-light: #334155;
+  --primary: #0ea5e9;     /* cyan accent */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --error: #ef4444;
+  --success: #22c55e;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+*,
+*::before,
+*::after{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
-body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: sans-serif;
+body{
+  background:var(--bg);
+  color:var(--text-primary);
+  font-family:'Inter', system-ui, sans-serif;
+  line-height:1.5;
 }
