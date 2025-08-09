@@ -230,10 +230,6 @@ footer {
   padding: 0.5rem;
 }
 
-.sidebar.mobile-hidden {
-  transform: translateX(-100%);
-}
-
 @media (max-width: 768px) {
   .hamburger {
     display: block;
@@ -262,6 +258,14 @@ footer {
   main {
     padding: 1rem;
     width: 100%;
+  }
+}
+
+/* Desktop - sidebar always visible */
+@media (min-width: 769px) {
+  .sidebar.mobile-hidden {
+    transform: none !important;
+    position: static !important;
   }
 }
 .auth-area {
