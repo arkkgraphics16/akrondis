@@ -51,15 +51,35 @@ header h1 {
 }
 
 .sidebar {
-  background: var(--surface);
-  color: var(--text-primary);
-  width: 250px;
-  padding: 1rem;
-  border-right: 1px solid var(--surface-light);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  justify-content: space-between;
+  padding: 1rem;
+  height: calc(100vh - 140px); /* leave space for header/footer */
+  border-radius: 8px;
 }
+
+/* sidebar footer block */
+.sidebar-footer {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-block {
+  display:flex;
+  gap:0.5rem;
+  align-items:center;
+}
+.user-block .avatar img { width:36px; height:36px; border-radius:6px; object-fit:cover; }
+.user-meta .user-display { color:var(--text-primary); font-weight:600; }
+.user-meta .user-discord { color:var(--text-secondary); font-size:0.85rem; }
+
+/* user actions */
+.user-actions { display:flex; gap:0.5rem; margin-top:0.5rem; }
+.auth-btn { padding:0.4rem 0.6rem; border-radius:6px; border:none; background:var(--primary); color:var(--text-primary); cursor:pointer; }
+.auth-btn.danger { background:#ef4444; }
 
 .sidebar nav ul {
   list-style: none;

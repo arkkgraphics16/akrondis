@@ -15,21 +15,14 @@ export function Layout() {
   useEffect(() => {
     if (user) {
       setNick(user.discordNick || '');
-      // If user needs nick, force open modal
       if (user.needsNick) setEditing(true);
     }
   }, [user]);
 
   const saveNick = async () => {
-    if (!user) {
-      addToast('You must be signed in');
-      return;
-    }
+    if (!user) { addToast('You must be signed in'); return; }
     const cleaned = (nick || '').toString().trim();
-    if (!cleaned) {
-      addToast('Discord nick cannot be empty');
-      return;
-    }
+    if (!cleaned) { addToast('Discord nick cannot be empty'); return; }
     try {
       await setDiscordNick(user.uid, cleaned);
       addToast('Discord nick saved');
@@ -44,39 +37,39 @@ export function Layout() {
     <div className="layout">
       <header>
         <h1>Akrondis</h1>
-
-        <div className="header-right">
-          {user ? (
-            <div className="header-user">
-              <div className="avatar">
-                {user.photoURL ? <img src={user.photoURL} alt="avatar" /> : <div className="avatar-fallback" />}
-              </div>
-              <div className="user-meta">
-                <div className="user-display">{user.displayName || user.email}</div>
-                <div className="user-discord">
-                  {user.discordNick ? <span className="discord">@{user.discordNick}</span> : <span className="discord muted">@</span>}
-                </div>
-              </div>
-              <div className="header-actions">
-                <button onClick={() => { setNick(user.discordNick || ''); setEditing(true); }} className="auth-btn">Set Discord Nick</button>
-                <button onClick={() => signOut()} className="auth-btn danger">Sign out</button>
-              </div>
-            </div>
-          ) : (
-            <button onClick={() => signInWithGoogle()} className="auth-btn primary">Sign in with Google</button>
-          )}
-        </div>
       </header>
 
       <div className="content">
         <aside className="sidebar">
-          <nav>
+          <nav className="main-nav">
             <ul>
               <li><NavLink to="/lists">Lists</NavLink></li>
               <li><NavLink to="/new-goal">New Goal</NavLink></li>
               <li><NavLink to="/my-goals">My Goals</NavLink></li>
             </ul>
           </nav>
+
+          {/* Bottom area in sidebar */}
+          <div className="sidebar-footer">
+            {user ? (
+              <>
+                <div className="user-block">
+                  <div className="avatar">{user.photoURL ? <img src={user.photoURL} alt="avatar" /> : <div className="avatar-fallback" />}</div>
+                  <div className="user-meta">
+                    <div className="user-display">{user.displayName || user.email}</div>
+                    <div className="user-discord">{user.discordNick ? <span className="discord">@{user.discordNick}</span> : <span className="discord muted">@</span>}</div>
+                  </div>
+                </div>
+
+                <div className="user-actions">
+                  <button onClick={() => { setNick(user.discordNick || ''); setEditing(true); }} className="auth-btn">Set Discord Nick</button>
+                  <button onClick={() => signOut()} className="auth-btn danger">Sign out</button>
+                </div>
+              </>
+            ) : (
+              <button onClick={() => signInWithGoogle()} className="auth-btn primary">Sign in with Google</button>
+            )}
+          </div>
         </aside>
 
         <main>
@@ -95,7 +88,6 @@ export function Layout() {
               autoFocus
             />
             <div className="row">
-              {/* If user is required to set nick (first-login), hide/collapse Cancel */}
               {!user?.needsNick && <button onClick={() => setEditing(false)}>Cancel</button>}
               <button onClick={saveNick}>Save</button>
             </div>
@@ -104,9 +96,7 @@ export function Layout() {
         </div>
       )}
 
-      <footer>
-        <small>© {new Date().getFullYear()} Akrondis</small>
-      </footer>
+  
     </div>
   );
 }
