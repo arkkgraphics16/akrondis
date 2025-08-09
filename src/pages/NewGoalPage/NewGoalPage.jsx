@@ -64,7 +64,7 @@ export function NewGoalPage() {
         discordNick: user.discordNick || discordName || '',
         content,
         utcDeadline: toISOStringUTC(toUTCDate(deadline)),
-        status: 'Doing It',
+        status: 'In Progress',
         type
       });
       localStorage.removeItem(DRAFT_KEY);

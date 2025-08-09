@@ -82,9 +82,9 @@ export function MyGoalsPage() {
               </div>
 
               <div className="actions">
-                <button onClick={() => changeStatus(g.id, 'Need Help')}>HELP</button>
-                <button onClick={() => changeStatus(g.id, 'Doing It')}>MISS</button>
-                <button onClick={() => changeStatus(g.id, 'Done')}>DONE</button>
+                <button className="help" onClick={() => changeStatus(g.id, 'Need Help')}>HELP</button>
+                <button className="miss" onClick={() => changeStatus(g.id, 'Doing It')}>MISS</button>
+                <button className="done" onClick={() => changeStatus(g.id, 'Done')}>DONE</button>
               </div>
             </li>
           ))}

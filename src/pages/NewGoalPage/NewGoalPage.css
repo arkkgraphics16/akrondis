@@ -73,9 +73,30 @@
 .datetime-wrap input[type="datetime-local"] {
   flex: 1;
   min-width: 0;
+  color: var(--text-primary);
+  background: var(--surface-light);
+  border: 1px solid #1e3a47;
+  border-radius: 8px;
 }
 
-/* calendar button */
+/* hide native calendar icon (Chromium / WebKit) */
+.datetime-wrap input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* fallback: hide other native pickers indicators */
+.datetime-wrap input[type="date"]::-webkit-calendar-picker-indicator,
+.datetime-wrap input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  opacity: 0;
+}
+
+/* calendar button (custom SVG trigger) */
 .calendar-btn {
   background: var(--surface-light);
   border: 1px solid #1e3a47;
@@ -126,4 +147,14 @@
 .new-goal-page button[type="submit"]:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* small responsive tweaks */
+@media (max-width: 640px) {
+  .new-goal-page {
+    padding: 0 1rem;
+  }
+  .calendar-btn {
+    padding: 0.45rem;
+  }
 }
