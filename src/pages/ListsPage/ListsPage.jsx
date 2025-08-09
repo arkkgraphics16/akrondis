@@ -58,7 +58,7 @@ export function ListsPage() {
           <li key={g.id} className="goal-item">
             <div className="content">{g.content}</div>
             <div className="meta">
-              <span className="user">@{g.discordTag}</span>
+              <span className="user">@{g.discordNick || g.discordTag || 'unknown'}</span>
               <span className="countdown">{renderCountdown(g.utcDeadline)}</span>
               <span className={`status ${g.status.replace(' ', '').toLowerCase()}`}>
                 {g.status}

@@ -11,6 +11,7 @@ export function Layout() {
 
   const [editing, setEditing] = useState(false);
   const [nick, setNick] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -36,16 +37,25 @@ export function Layout() {
   return (
     <div className="layout">
       <header>
-        <h1>Akrondis</h1>
+        <div className="header-left">
+          <button 
+            className="hamburger"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Toggle menu"
+          >
+            ☰
+          </button>
+          <h1>Akrondis</h1>
+        </div>
       </header>
 
       <div className="content">
-        <aside className="sidebar">
+        <aside className={`sidebar ${!sidebarOpen ? 'mobile-hidden' : ''}`}>
           <nav className="main-nav">
             <ul>
-              <li><NavLink to="/lists">Lists</NavLink></li>
-              <li><NavLink to="/new-goal">New Goal</NavLink></li>
-              <li><NavLink to="/my-goals">My Goals</NavLink></li>
+              <li><NavLink to="/lists" onClick={() => setSidebarOpen(false)}>Lists</NavLink></li>
+              <li><NavLink to="/new-goal" onClick={() => setSidebarOpen(false)}>New Goal</NavLink></li>
+              <li><NavLink to="/my-goals" onClick={() => setSidebarOpen(false)}>My Goals</NavLink></li>
             </ul>
           </nav>
 
@@ -54,20 +64,40 @@ export function Layout() {
             {user ? (
               <>
                 <div className="user-block">
-                  <div className="avatar">{user.photoURL ? <img src={user.photoURL} alt="avatar" /> : <div className="avatar-fallback" />}</div>
+                  <div className="avatar">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="avatar" />
+                    ) : (
+                      <div className="avatar-fallback">
+                        {(user.displayName?.[0] || user.email?.[0] || 'U').toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                   <div className="user-meta">
                     <div className="user-display">{user.displayName || user.email}</div>
-                    <div className="user-discord">{user.discordNick ? <span className="discord">@{user.discordNick}</span> : <span className="discord muted">@</span>}</div>
+                    <div className="user-discord">
+                      {user.discordNick ? (
+                        <span className="discord">@{user.discordNick}</span>
+                      ) : (
+                        <span className="discord muted">@</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className="user-actions">
-                  <button onClick={() => { setNick(user.discordNick || ''); setEditing(true); }} className="auth-btn">Set Discord Nick</button>
-                  <button onClick={() => signOut()} className="auth-btn danger">Sign out</button>
+                  <button onClick={() => { setNick(user.discordNick || ''); setEditing(true); }} className="auth-btn">
+                    Set Discord Nick
+                  </button>
+                  <button onClick={() => signOut()} className="auth-btn danger">
+                    Log Out
+                  </button>
                 </div>
               </>
             ) : (
-              <button onClick={() => signInWithGoogle()} className="auth-btn primary">Sign in with Google</button>
+              <button onClick={() => signInWithGoogle()} className="auth-btn primary">
+                Sign in with Google
+              </button>
             )}
           </div>
         </aside>
@@ -95,8 +125,6 @@ export function Layout() {
           </div>
         </div>
       )}
-
-  
     </div>
   );
 }
