@@ -44,7 +44,7 @@ export function NewGoalPage() {
     if (!user) return 'Please sign in with Google first';
     if (!content.trim()) return 'Goal content required';
     if (!deadline) return 'Deadline required';
-    const ms = msLeft(deadline);               // ← uses local time
+    const ms = new Date(g.utcDeadline) - Date.now();            
     if (ms <= 0) return 'Deadline can’t be in the past';
     return '';
   };
