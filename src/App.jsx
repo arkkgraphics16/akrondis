@@ -3,9 +3,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 import { ToastProvider } from './components/Toast/ToastContext';
-import ListsPage from './pages/ListsPage/ListsPage';
-import NewGoalPage from './pages/NewGoalPage/NewGoalPage';
-import MyGoalsPage from './pages/MyGoalsPage/MyGoalsPage';
+import { ListsPage } from './pages/ListsPage/ListsPage';
+import { NewGoalPage } from './pages/NewGoalPage/NewGoalPage';
+import { MyGoalsPage } from './pages/MyGoalsPage/MyGoalsPage';
 
 export function App() {
   return (
