@@ -61,7 +61,7 @@ export function NewGoalPage() {
       await addGoal({
         ownerUid: user.uid,
         ownerDisplayName: user.displayName || user.email || 'NoName',
-        discordNick: user.discordNick || discordName || '',
+        discordNick: user.discordNick,
         content,
         utcDeadline: toISOStringUTC(toUTCDate(deadline)),
         status: 'In Progress',

@@ -51,44 +51,34 @@ header h1 {
 }
 
 .sidebar {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  background: var(--surface);
+  color: var(--text-primary);
+  width: 250px;
   padding: 1rem;
-  height: calc(100vh - 140px); /* leave space for header/footer */
-  border-radius: 8px;
-}
-
-/* sidebar footer block */
-.sidebar-footer {
-  margin-top: 1rem;
+  border-right: 1px solid var(--surface-light);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  height: 100%;
 }
 
-.user-block {
-  display:flex;
-  gap:0.5rem;
-  align-items:center;
-}
-.user-block .avatar img { width:36px; height:36px; border-radius:6px; object-fit:cover; }
-.user-meta .user-display { color:var(--text-primary); font-weight:600; }
-.user-meta .user-discord { color:var(--text-secondary); font-size:0.85rem; }
-
-/* user actions */
-.user-actions { display:flex; gap:0.5rem; margin-top:0.5rem; }
-.auth-btn { padding:0.4rem 0.6rem; border-radius:6px; border:none; background:var(--primary); color:var(--text-primary); cursor:pointer; }
-.auth-btn.danger { background:#ef4444; }
-
-.sidebar nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* Sidebar Navigation */
+.sidebar nav {
+  flex: 1;
 }
 
-.sidebar nav li {
-  margin-bottom: 0.5rem;
+main {
+  flex: 1;
+  padding: 2rem;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+footer {
+  background: var(--surface);
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 1rem;
+  border-top: 1px solid var(--surface-light);
 }
 
 .sidebar a {
@@ -108,36 +98,6 @@ header h1 {
 .sidebar a.active {
   color: var(--primary);
   background: var(--surface-light);
-}
-
-main {
-  flex: 1;
-  padding: 2rem;
-  background: var(--bg);
-  overflow-y: auto;
-}
-
-footer {
-  background: var(--surface);
-  color: var(--text-secondary);
-  text-align: center;
-  padding: 1rem;
-  border-top: 1px solid var(--surface-light);
-}
-
-/* Sidebar Navigation */
-.sidebar nav {
-  flex: 1;
-}
-
-.sidebar nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar nav li {
-  margin-bottom: 0.5rem;
 }
 
 /* Auth Area in Sidebar */
