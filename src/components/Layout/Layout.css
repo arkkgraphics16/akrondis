@@ -1,9 +1,33 @@
 header, footer {
   background: var(--surface);
-  color: var(--text-primary);
-  padding: 0.75rem 1rem;
-  text-align: center;
+  padding: 1rem;
+}
+header h1 {
+  color: var(--primary);
 }
 main {
-  min-height: calc(100vh - 6rem);
+  padding: 2rem;
+  background: var(--bg);
+}
+footer {
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.sidebar {
+  background: var(--surface);
+  color: var(--text-primary);
+  width: 250px;
+  padding: 1rem;
+}
+
+.sidebar a {
+  display: block;
+  color: var(--text-secondary);
+  text-decoration: none;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar a:hover {
+  color: var(--primary);
 }
