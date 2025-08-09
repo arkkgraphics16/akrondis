@@ -1,7 +1,7 @@
 // src/pages/MyGoalsPage/MyGoalsPage.jsx
 import React, { useEffect, useState } from 'react';
 import { fetchGoalsByUser, updateGoalStatus } from '../../utils/firestoreService';
-import { toUTCDate } from '../../utils/timeUtils';
+import { msLeft } from '../../utils/timeUtils';
 import { Spinner } from '../../components/Spinner/Spinner';
 import './MyGoalsPage.css';
 import { useAuth } from '../../components/Auth/AuthContext';
@@ -15,7 +15,7 @@ export function MyGoalsPage() {
   const [loading, setLoading] = useState(false);
 
   const renderCountdown = utcISO => {
-    const ms = toUTCDate(utcISO) - new Date();
+    const ms = msLeft(utcISO);
     if (ms <= 0) return 'Expired';
     const h = Math.floor(ms / 3_600_000);
     const m = Math.floor((ms % 3_600_000) / 60_000);
