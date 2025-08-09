@@ -1,5 +1,5 @@
 // src/pages/NewGoalPage/NewGoalPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './NewGoalPage.css';
 import { toUTCDate, toISOStringUTC } from '../../utils/timeUtils';
 import { addGoal } from '../../utils/firestoreService';
@@ -15,14 +15,14 @@ export function NewGoalPage() {
   const { user, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  const [discordName, setName]     = useState('');
-  const [content, setContent]      = useState('');
-  const [deadline, setDeadline]    = useState('');
-  const [type, setType]            = useState('One-Time');
-  const [error, setError]          = useState('');
-  const [loading, setLoading]      = useState(false);
+  const [discordName, setName] = useState('');
+  const [content, setContent] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [type, setType] = useState('One-Time');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const dtRef = useRef(null);
 
-  // Load draft
   useEffect(() => {
     const saved = localStorage.getItem(DRAFT_KEY);
     if (saved) {
@@ -57,13 +57,13 @@ export function NewGoalPage() {
     setError('');
     setLoading(true);
     try {
-      const utc = toISOStringUTC(toUTCDate(deadline));
+      // our firestoreService will convert the ISO string to Timestamp
       await addGoal({
         ownerUid: user.uid,
         ownerDisplayName: user.displayName || user.email || 'NoName',
         discordNick: user.discordNick || discordName || '',
         content,
-        utcDeadline: utc,
+        utcDeadline: toISOStringUTC(toUTCDate(deadline)),
         status: 'Doing It',
         type
       });
@@ -72,13 +72,23 @@ export function NewGoalPage() {
       setDeadline('');
       setName('');
       addToast('Goal added successfully!');
-      // navigate to lists
       navigate('/lists');
     } catch (e) {
       console.error(e);
       setError('Save failed, try again');
     }
     setLoading(false);
+  };
+
+  const openDatePicker = () => {
+    const el = dtRef.current;
+    if (!el) return;
+    // preferred modern API
+    if (typeof el.showPicker === 'function') {
+      el.showPicker();
+    } else {
+      el.focus();
+    }
   };
 
   if (!user) {
@@ -106,9 +116,31 @@ export function NewGoalPage() {
             <textarea value={content} onChange={e => setContent(e.target.value)} required />
           </label>
 
-          <label>
-            Deadline *
-            <input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} required />
+          <label className="deadline-row">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Deadline *</span>
+              <small className="hint">click calendar to open picker</small>
+            </div>
+
+            <div className="datetime-wrap">
+              <input
+                ref={dtRef}
+                type="datetime-local"
+                value={deadline}
+                onChange={e => setDeadline(e.target.value)}
+                required
+              />
+              <button type="button" className="calendar-btn" onClick={openDatePicker} aria-label="open calendar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 11H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M11 11H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M15 11H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M16 3V7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M8 3V7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
           </label>
 
           <label>
