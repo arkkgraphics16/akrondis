@@ -1,15 +1,18 @@
 // src/pages/MyGoalsPage/MyGoalsPage.jsx
 import React, { useEffect, useState } from 'react';
-import { fetchGoalsByUser } from '../../utils/firestoreService';
+import { fetchGoalsByUser, updateGoalStatus } from '../../utils/firestoreService';
 import { toUTCDate } from '../../utils/timeUtils';
 import { Spinner } from '../../components/Spinner/Spinner';
 import './MyGoalsPage.css';
+import { useAuth } from '../../components/Auth/AuthContext';
+import { useToast } from '../../components/Toast/ToastContext';
 
 export function MyGoalsPage() {
-  const [tag, setTag] = useState('');
+  const { user, signInWithGoogle } = useAuth();
+  const addToast = useToast();
+
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [fetched, setFetched] = useState(false);
 
   const renderCountdown = utcISO => {
     const ms = toUTCDate(utcISO) - new Date();
@@ -19,39 +22,54 @@ export function MyGoalsPage() {
     return `${h}h ${m}m`;
   };
 
-  const handleSearch = async e => {
-    e.preventDefault();
-    if (!tag) return;
+  const load = async (uid) => {
     setLoading(true);
     try {
-      const data = await fetchGoalsByUser(tag);
+      const data = await fetchGoalsByUser(uid);
       setGoals(data);
-      setFetched(true);
     } catch (e) {
       console.error(e);
     }
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (user && user.uid) {
+      load(user.uid);
+    }
+  }, [user]);
+
+  const changeStatus = async (goalId, newStatus) => {
+    setLoading(true);
+    try {
+      await updateGoalStatus(goalId, newStatus);
+      // reflect locally
+      setGoals(g => g.map(x => x.id === goalId ? { ...x, status: newStatus } : x));
+      addToast('Status updated');
+    } catch (e) {
+      console.error(e);
+      addToast('Update failed');
+    }
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <main className="page my-goals-page">
+        <h1>My Goals</h1>
+        <p>You must sign in with Google to see your goals.</p>
+        <button onClick={() => signInWithGoogle()}>Sign in with Google</button>
+      </main>
+    );
+  }
+
   return (
     <main className="page my-goals-page">
       <h1>My Goals</h1>
-      <form onSubmit={handleSearch} className="tag-form" disabled={loading}>
-        <input
-          value={tag}
-          onChange={e => setTag(e.target.value)}
-          placeholder="arkk#1234"
-        />
-        <button type="submit">
-          {loading ? <Spinner /> : 'Load My Goals'}
-        </button>
-      </form>
-
-      {fetched && !loading && goals.length === 0 && (
-        <p>No goals found for {tag}.</p>
-      )}
 
       {loading && <Spinner />}
+
+      {!loading && goals.length === 0 && <p>No goals yet. Create one.</p>}
 
       {!loading && goals.length > 0 && (
         <ul className="goal-list">
@@ -60,9 +78,13 @@ export function MyGoalsPage() {
               <div className="content">{g.content}</div>
               <div className="meta">
                 <span className="countdown">{renderCountdown(g.utcDeadline)}</span>
-                <span className={`status ${g.status.replace(' ', '').toLowerCase()}`}>
-                  {g.status}
-                </span>
+                <span className={`status ${g.status.replace(' ', '').toLowerCase()}`}>{g.status}</span>
+              </div>
+
+              <div className="actions">
+                <button onClick={() => changeStatus(g.id, 'Need Help')}>HELP</button>
+                <button onClick={() => changeStatus(g.id, 'Doing It')}>MISS</button>
+                <button onClick={() => changeStatus(g.id, 'Done')}>DONE</button>
               </div>
             </li>
           ))}
