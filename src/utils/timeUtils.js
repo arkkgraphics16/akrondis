@@ -1,17 +1,12 @@
 // src/utils/timeUtils.js
 
-/**
- * Convert a local ISO datetime string (e.g. "2025-08-06T15:00")
- * into a UTC Date object.
- */
-export function toUTCDate(localISOString) {
-  const local = new Date(localISOString);
-  return new Date(local.getTime() + local.getTimezoneOffset() * 60000);
+// Returns the local ISO string from a <input type="datetime-local"> value
+export function toLocalISO(localISOString) {
+  // already in local ISO, just return it
+  return localISOString;
 }
 
-/**
- * Format a UTC Date into ISO string for storing/display.
- */
-export function toISOStringUTC(date) {
-  return date.toISOString();
+// Returns ms-left from now (in local time)
+export function msLeft(localISO) {
+  return new Date(localISO) - Date.now();
 }
