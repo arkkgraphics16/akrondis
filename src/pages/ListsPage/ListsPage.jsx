@@ -19,8 +19,17 @@ export function ListsPage() {
   }, []);
 
   const filterByTab = goal => {
+    // Hide expired goals
+    if (msLeft(goal.utcDeadline) <= 0) return false;
+    
     if (activeTab === 'All') return true;
     return goal.type === activeTab;
+  };
+
+  const sortByTimeLeft = (a, b) => {
+    const msA = msLeft(a.utcDeadline);
+    const msB = msLeft(b.utcDeadline);
+    return msA - msB; // Ascending: closest deadline first
   };
 
   const renderCountdown = utcISO => {
@@ -54,7 +63,7 @@ export function ListsPage() {
       </nav>
 
       <ul className="goal-list">
-        {goals.filter(filterByTab).map(g => (
+        {goals.filter(filterByTab).sort(sortByTimeLeft).map(g => (
           <li key={g.id} className="goal-item">
             <div className="content">{g.content}</div>
             <div className="meta">
