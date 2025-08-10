@@ -87,7 +87,6 @@ header h1 {
 .content {
   display: flex;
   flex: 1;
-  min-height: 0; /* Important: allows flex children to shrink */
 }
 
 /* Sidebar */
@@ -99,9 +98,9 @@ header h1 {
   border-right: 1px solid var(--surface-light);
   display: flex;
   flex-direction: column;
+  min-height: calc(100vh - var(--header-height));
   z-index: 1250;
   box-sizing: border-box;
-  flex-shrink: 0; /* Prevent sidebar from shrinking */
 }
 
 /* Make nav scrollable so footer stays pinned */
@@ -234,7 +233,7 @@ main {
   padding: 2rem;
   background: var(--bg);
   overflow-y: auto;
-  min-width: 0; /* Important: allows main to shrink properly */
+  min-height: 0;
 }
 
 /* links */
@@ -292,7 +291,6 @@ main {
   /* reserve space under fixed header so content does not jump */
   .content {
     padding-top: var(--header-height);
-    min-height: calc(100vh - var(--header-height));
   }
 
   /* sidebar overlay under fixed header */
@@ -320,14 +318,7 @@ main {
 
 /* Desktop behavior */
 @media (min-width: 769px) {
-  .sidebar {
-    position: static !important;
-    transform: none !important;
-    height: calc(100vh - var(--header-height));
-  }
-  
   .sidebar.mobile-hidden {
-    /* Override mobile hidden state on desktop */
     transform: none !important;
     position: static !important;
   }
@@ -340,7 +331,6 @@ main {
 
   .content {
     padding-top: 0;
-    height: calc(100vh - var(--header-height));
   }
 }
 
