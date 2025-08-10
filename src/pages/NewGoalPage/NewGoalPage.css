@@ -108,7 +108,7 @@
 .calendar-btn {
   background: var(--surface-light);
   border: 1px solid #1e3a47;
-  color: var(--primary);
+  color: var(--text-primary);
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
@@ -121,10 +121,7 @@
 }
 
 .calendar-btn:hover:not(:disabled) {
-  background: var(--primary);
-  color: var(--text-primary);
-  border-color: var(--primary);
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .calendar-btn svg {
