@@ -1,7 +1,7 @@
 /* src/pages/ListsPage/ListsPage.css */
 
 .lists-page {
-  padding-top: 50px;   /* push everything down from the fixed header */
+  padding-top: 100px; 
 }
 
 .page {

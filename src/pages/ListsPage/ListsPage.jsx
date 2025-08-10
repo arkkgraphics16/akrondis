@@ -66,7 +66,7 @@ export function ListsPage() {
   }
 
   return (
-    <main className="page lists-page">
+    <main className="lists-page">
       <nav className="tabs">
         {tabs.map(t => (
           <button
