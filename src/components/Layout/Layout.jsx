@@ -1,4 +1,3 @@
-// src/components/Layout/Layout.jsx
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import './Layout.css';
@@ -49,7 +48,7 @@ export function Layout() {
         </div>
       </header>
 
-      <div className="content">
+      <div className={`content ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <aside className={`sidebar ${!sidebarOpen ? 'mobile-hidden' : ''}`}>
           <nav className="main-nav">
             <ul>
