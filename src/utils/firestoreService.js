@@ -1,5 +1,6 @@
 // src/utils/firestoreService.js
 // Firestore v9 (modular) helpers for goals stored under users/{uid}/goals/{goalId}
+// Provides backward-compatible fetchAllGoals() for existing ListsPage usage.
 
 import {
   collection,
@@ -18,8 +19,8 @@ import { db } from './firebaseConfig';
  * Helper: normalize various utcDeadline input formats to Firestore Timestamp or null.
  * Accepts:
  *  - Date instance
- *  - ISO string (e.g. "2025-08-10T12:00:00Z" or "2025-08-10T20:00") — will be parsed by Date.
- *  - Firestore Timestamp (returned as-is)
+ *  - ISO string
+ *  - Firestore Timestamp
  *  - null/undefined -> null
  */
 function toTimestampOrNull(val) {
@@ -44,13 +45,43 @@ function userGoalsCol(uid) {
 }
 
 /**
+ * ----- Backwards-compatible: fetchAllGoals (root collection) -----
+ * This mirrors the behavior of your original file so ListsPage continues to work.
+ * It returns utcDeadline normalized to ISO strings (same as your old implementation).
+ */
+export async function fetchAllGoals() {
+  const rootCol = collection(db, 'goals');
+  const snap = await getDocs(rootCol);
+  return snap.docs.map(docSnap => {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      ...data,
+      utcDeadline:
+        data.utcDeadline && data.utcDeadline.toDate
+          ? data.utcDeadline.toDate().toISOString()
+          : data.utcDeadline
+    };
+  });
+}
+
+/**
+ * Legacy helper (keeps name for clarity) - returns raw docs from /goals
+ */
+export async function fetchAllGoalsRoot() {
+  const rootCol = collection(db, 'goals');
+  const snap = await getDocs(rootCol);
+  const out = [];
+  snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  return out;
+}
+
+/**
  * Add a new goal under users/{uid}/goals
  *
  * @param {string} uid - owner user id
  * @param {object} goalData - { content, utcDeadline?, status? } - utcDeadline may be ISO string or Date
  * @returns {object} - { id, ...payload } where timestamps may be serverTimestamp() sentinels
- *
- * NOTE: createdAt/updatedAt are set to serverTimestamp() (sentinel) so security rules expecting request.time will pass.
  */
 export async function addGoal(uid, goalData) {
   if (!uid) throw new Error('uid required');
@@ -63,15 +94,14 @@ export async function addGoal(uid, goalData) {
   const payload = {
     content: goalData.content.trim(),
     utcDeadline: utcDeadlineTs,
-    status: goalData.status || 'Doing It', // default status
-    uid: uid, // ownership field (used by rules)
+    status: goalData.status || 'Doing It',
+    uid: uid,
     deleted: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   };
 
   const ref = await addDoc(userGoalsCol(uid), payload);
-  // Note: serverTimestamp() are sentinel values; returning payload shows them as such.
   return { id: ref.id, ...payload };
 }
 
@@ -91,29 +121,8 @@ export async function fetchGoalsByUser(uid) {
 }
 
 /**
- * Fetch all goals from root /goals collection (legacy / migration helper).
- * This mirrors your old approach if you still have data at /goals. Returns raw fields.
- * NOTE: This is intended for one-off migration scripts or admin use.
- */
-export async function fetchAllGoalsRoot() {
-  const rootCol = collection(db, 'goals');
-  const snap = await getDocs(rootCol);
-  const out = [];
-  snap.forEach(d => {
-    out.push({ id: d.id, ...d.data() });
-  });
-  return out;
-}
-
-/**
  * Generic update for a goal under users/{uid}/goals/{goalId}.
  * Merges the provided updates and sets updatedAt to serverTimestamp().
- *
- * Examples:
- *  updateGoal(uid, goalId, { content: 'new', utcDeadline: '2025-08-11T12:00:00Z' })
- *  updateGoal(uid, goalId, { status: 'Done' })
- *
- * utcDeadline can be Date / ISO string / Firestore Timestamp / null
  */
 export async function updateGoal(uid, goalId, updates = {}) {
   if (!uid) throw new Error('uid required');
@@ -123,7 +132,6 @@ export async function updateGoal(uid, goalId, updates = {}) {
   const payload = { ...updates };
 
   if (Object.prototype.hasOwnProperty.call(payload, 'utcDeadline')) {
-    // allow explicit null to clear the deadline
     if (payload.utcDeadline == null) {
       payload.utcDeadline = null;
     } else {
@@ -131,7 +139,6 @@ export async function updateGoal(uid, goalId, updates = {}) {
     }
   }
 
-  // always set updatedAt server-side sentinel
   payload.updatedAt = serverTimestamp();
 
   await updateDoc(docRef, payload);
@@ -140,7 +147,7 @@ export async function updateGoal(uid, goalId, updates = {}) {
 
 /**
  * Update only the status field (compatibility helper).
- * Signature changed to include uid for security path: updateGoalStatus(uid, goalId, newStatus)
+ * Signature: updateGoalStatus(uid, goalId, newStatus)
  */
 export async function updateGoalStatus(uid, goalId, newStatus) {
   if (!uid) throw new Error('uid required');
@@ -186,16 +193,13 @@ export async function undoDeleteGoal(uid, goalId) {
 
 /**
  * Migration helper: create goal at users/{uid}/goals with given id from a legacy doc.
- * Useful when migrating /goals -> users/{uid}/goals and you want to preserve the same id.
- *
- * WARNING: This will overwrite if a doc with same id exists under users/{uid}/goals.
+ * NOTE: This function intentionally throws if the client cannot create a doc with a custom id.
  */
 export async function createGoalWithId(uid, goalId, data) {
   if (!uid) throw new Error('uid required');
   if (!goalId) throw new Error('goalId required');
   const docRef = doc(db, 'users', uid, 'goals', goalId);
 
-  // normalize deadline
   const cleaned = { ...data };
   if (cleaned.utcDeadline) {
     try {
@@ -207,16 +211,12 @@ export async function createGoalWithId(uid, goalId, data) {
     cleaned.utcDeadline = null;
   }
 
-  // ensure fields expected by rules
   cleaned.uid = uid;
   cleaned.deleted = !!cleaned.deleted;
   cleaned.createdAt = cleaned.createdAt || serverTimestamp();
   cleaned.updatedAt = serverTimestamp();
 
-  // use updateDoc would fail for non-existing doc; addDoc can't set custom id, so use set via updateDoc/setDoc is not imported.
-  // We intentionally use updateDoc only if exists; caller should ensure using a migration script with admin SDK for robust migration.
   await updateDoc(docRef, cleaned).catch(async (err) => {
-    // if doc doesn't exist updateDoc will fail — fallback: add as new doc with desired id using setDoc via admin SDK.
     throw new Error('createGoalWithId requires Admin privileges or setDoc (not implemented here). Run migration with Admin SDK.');
   });
 }
