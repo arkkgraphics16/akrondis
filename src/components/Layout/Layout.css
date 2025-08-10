@@ -1,4 +1,3 @@
-
 /* src/components/Layout/Layout.css */
 
 /* CSS Variables - Define your color scheme */
@@ -242,6 +241,7 @@ main {
   background: var(--bg);
   overflow-y: auto;
   min-height: calc(100vh - var(--header-height));
+  margin-left: 150px; /* Account for fixed sidebar */
   padding: 0.5rem 1rem; /* Top/bottom tight, sides normal */
 }
 
