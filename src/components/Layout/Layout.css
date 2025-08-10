@@ -1,3 +1,5 @@
+/* src/components/Layout/Layout.css */
+
 /* CSS Variables - Define your color scheme */
 :root {
   --primary: #3b82f6;
@@ -7,6 +9,7 @@
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
   --error: #ef4444;
+  --header-height: 64px;
 }
 
 * {
@@ -28,6 +31,7 @@ body {
   flex-direction: column;
 }
 
+/* Header - kept static on desktop, fixed on mobile */
 header {
   background: var(--surface);
   padding: 1rem;
@@ -37,6 +41,7 @@ header {
   align-items: center;
 }
 
+/* header-left */
 .header-left {
   display: flex;
   align-items: center;
@@ -49,11 +54,13 @@ header h1 {
   margin: 0;
 }
 
+/* Main content + sidebar layout */
 .content {
   display: flex;
   flex: 1;
 }
 
+/* Sidebar container */
 .sidebar {
   background: var(--surface);
   color: var(--text-primary);
@@ -62,13 +69,16 @@ header h1 {
   border-right: 1px solid var(--surface-light);
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - var(--header-height));
+  /* ensure sidebar stacking above main content on mobile */
+  z-index: 1200;
 }
 
 /* Sidebar Navigation */
 .sidebar nav {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto; /* <--- important: make nav scrollable so footer stays pinned */
+  -webkit-overflow-scrolling: touch;
 }
 
 .sidebar nav ul {
@@ -81,11 +91,12 @@ header h1 {
   margin-bottom: 0.5rem;
 }
 
-/* Sidebar Footer */
+/* Sidebar Footer (sticky to bottom via margin-top:auto) */
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid var(--surface-light);
+  flex-shrink: 0;
 }
 
 .user-block {
@@ -152,6 +163,7 @@ header h1 {
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
+  background-clip: padding-box;
 }
 
 .auth-btn.primary {
@@ -192,6 +204,7 @@ main {
   min-height: 0;
 }
 
+/* links */
 .sidebar a {
   display: block;
   color: var(--text-secondary);
@@ -222,39 +235,55 @@ main {
   padding: 0.5rem;
 }
 
+/* MOBILE tweaks: fix header, make sidebar overlay and scroll nav only */
 @media (max-width: 768px) {
   .hamburger {
     display: block;
   }
-  
+
+  /* make header fixed on mobile so it doesn't disappear while swiping */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    border-bottom: 1px solid var(--surface-light);
+    background: var(--surface);
+  }
+
+  /* reserve space for fixed header so content doesn't jump under it */
   .content {
     position: relative;
+    padding-top: var(--header-height);
   }
-  
+
+  /* mobile sidebar behaves as overlay under the fixed header */
   .sidebar {
     position: fixed;
-    top: 80px;
+    top: var(--header-height);
     left: 0;
     width: 280px;
-    height: calc(100vh - 80px);
-    z-index: 999;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    height: calc(100vh - var(--header-height));
+    transform: translateX(-100%); /* hidden by default */
+    transition: transform 0.28s ease;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.35);
+    z-index: 1250; /* above content but below modal */
   }
-  
+
+  /* class used to open sidebar (toggle in JS sets/removes .mobile-hidden) */
   .sidebar:not(.mobile-hidden) {
     transform: translateX(0);
   }
-  
+
+  /* main area on mobile */
   main {
     padding: 1rem;
     width: 100%;
-    transition: margin-left 0.3s ease;
-  }
-
-  .content.sidebar-open main {
-    margin-left: 280px;
   }
 }
 
@@ -264,6 +293,90 @@ main {
     transform: none !important;
     position: static !important;
   }
+
+  /* keep header static on desktop (original behaviour) */
+  header {
+    position: static;
+    height: auto;
+    padding: 1rem;
+  }
+
+  .content {
+    padding-top: 0;
+  }
+}
+
+/* Auth area extras */
+.auth-area {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--surface-light);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.user-name {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.discord-nick {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.auth-btn {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.auth-btn.primary:hover {
+  background: #2563eb;
+}
+
+.auth-btn.secondary {
+  background: var(--surface-light);
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-light);
+}
+
+.auth-btn.secondary:hover {
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+.auth-btn.danger {
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+
+.auth-btn.danger:hover {
+  background: var(--error);
+  color: white;
 }
 
 /* Nick Modal */
@@ -277,7 +390,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1400; /* above sidebar */
 }
 
 .nick-box {
