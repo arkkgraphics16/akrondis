@@ -5,6 +5,7 @@
   padding: 0; /* Remove all padding - main handles it */
   background: transparent; /* Blend with main bg */
   min-height: calc(100vh - var(--header-height));
+  padding-top: 100px; 
 }
 
 /* tag form */
