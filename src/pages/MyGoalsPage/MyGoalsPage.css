@@ -1,11 +1,30 @@
 /* src/pages/MyGoalsPage/MyGoalsPage.css */
 
+/* Page-specific color tuning — scoped to avoid global side effects */
+.my-goals-page {
+  /* soften error (carmine) and clarify success (clean green) */
+  --error: #9b1b1b;          /* carmine / less harsh red */
+  --error-rgb: 155,27,27;
+
+  --success: #16a34a;        /* cleaner, less neon green */
+  --success-rgb: 22,163,74;
+
+  /* neutral / muted for "doing it" */
+  --muted: #64748b;
+  --muted-rgb: 100,116,139;
+
+  /* keep other root vars available:
+     --bg, --surface, --surface-light, --primary,
+     --text-primary, --text-secondary are read from :root
+  */
+}
+
 /* page shell - NO BACKGROUND, BLEND WITH MAIN */
 .page {
-  padding: 0; /* Remove all padding - main handles it */
-  background: transparent; /* Blend with main bg */
+  padding: 0;
+  background: transparent;
   min-height: calc(100vh - var(--header-height));
-  padding-top: 70px; 
+  padding-top: 70px;
 }
 
 /* tag form */
@@ -17,49 +36,57 @@
 .tag-form input {
   flex: 1;
   padding: .5rem;
-  border: 1px solid #1e3a47;
-  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 6px;
   background: var(--surface-light);
   color: var(--text-primary);
+  outline: none;
+}
+.tag-form input:focus {
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.08); /* subtle cyan focus */
+  border-color: var(--primary);
 }
 .tag-form button {
   padding: .5rem 1rem;
   background: var(--primary);
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: filter .15s, transform .06s;
+  color: var(--text-primary);
+  font-weight: 700;
 }
-.tag-form button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.tag-form button:hover { filter: brightness(1.06); transform: translateY(-1px); }
 
 /* list layout */
 .goal-list {
   list-style: none;
   display: grid;
   gap: 1rem;
+  margin: 0;
+  padding: 0;
 }
 
 /* item card - RESPONSIVE PADDING */
 .goal-item {
   padding: 1rem;
   background: var(--surface-light);
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.02);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  box-shadow: 0 4px 10px rgba(2,6,23,0.25);
+  transition: transform .08s, box-shadow .12s, opacity .12s;
 }
+
+.goal-item:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(2,6,23,0.35); }
 
 @media (max-width: 640px) {
-  .goal-item { 
-    padding: 0.75rem; 
-  }
+  .goal-item { padding: 0.75rem; }
 }
-
 @media (max-width: 480px) {
-  .goal-item { 
-    padding: 0.5rem; 
-  }
+  .goal-item { padding: 0.5rem; }
 }
 
 .goal-item .content {
@@ -69,6 +96,18 @@
   word-break: break-word;
 }
 
+/* editable input look */
+.goal-item .content input {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.04);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+/* meta row */
 .goal-item .meta {
   display: flex;
   gap: 1rem;
@@ -77,20 +116,41 @@
   align-items: center;
 }
 
-/* status badge */
+/* status badge base */
 .status {
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
-  font-weight: 600;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+  font-weight: 700;
   padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  border-radius: 10px;
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(255,255,255,0.03);
 }
 
-/* status colors (use palette-friendly tones) */
-.status.doingit  { background: #64748b; } /* muted gray-blue */
-.status.needhelp { background: #dc2626; } /* red */
-.status.done     { background: #16a34a; } /* green */
+/* status styles using only the defined vars (soft tints) */
+.status.doingit {
+  /* muted gray-blue with subtle tint */
+  background: rgba(var(--muted-rgb), 0.08);
+  color: var(--text-primary);
+  border-color: rgba(var(--muted-rgb), 0.18);
+}
+
+.status.needhelp {
+  /* carmine tint */
+  background: rgba(var(--error-rgb), 0.10);
+  color: var(--text-primary);
+  border-color: rgba(var(--error-rgb), 0.22);
+}
+
+.status.done {
+  /* clean green tint */
+  background: rgba(var(--success-rgb), 0.10);
+  color: var(--text-primary);
+  border-color: rgba(var(--success-rgb), 0.22);
+}
 
 /* actions (buttons row) */
 .actions {
@@ -103,65 +163,168 @@
 /* base button style inside actions */
 .actions button {
   padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: 800;
+  font-size: 0.86rem;
   letter-spacing: 0.6px;
-  transition: transform .06s, filter .12s;
+  transition: transform .06s, filter .12s, box-shadow .08s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 72px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(2,6,23,0.18);
 }
 
-/* individual button colors */
+/* individual button colors — use only vars (soft backgrounds + borders) */
 .actions button.help {
-  background: #dc2626; /* Need Help - red */
+  /* NEED HELP — carmine (less harsh) */
+  background: linear-gradient(180deg, rgba(var(--error-rgb),0.10), rgba(var(--error-rgb),0.06));
   color: var(--text-primary);
-}
-.actions button.miss {
-  background: #64748b; /* Doing It - muted gray */
-  color: var(--text-primary);
-}
-.actions button.done {
-  background: #16a34a; /* Done - green */
-  color: var(--text-primary);
+  border: 1px solid rgba(var(--error-rgb), 0.22);
+  box-shadow: 0 4px 10px rgba(var(--error-rgb), 0.06);
 }
 
-/* hover / active */
-.actions button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.03); }
-.actions button:active:not(:disabled) { transform: translateY(0); }
+.actions button.miss {
+  /* DOING IT — muted neutral */
+  background: linear-gradient(180deg, rgba(var(--muted-rgb),0.10), rgba(var(--muted-rgb),0.06));
+  color: var(--text-primary);
+  border: 1px solid rgba(var(--muted-rgb), 0.14);
+}
+
+.actions button.done {
+  /* DONE — cleaned green */
+  background: linear-gradient(180deg, rgba(var(--success-rgb),0.10), rgba(var(--success-rgb),0.06));
+  color: var(--text-primary);
+  border: 1px solid rgba(var(--success-rgb), 0.18);
+}
+
+/* subtle hover */
+.actions button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.28);
+}
+
+/* active / pressed */
+.actions button:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
 
 /* disabled state */
 .actions button:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
   filter: none;
   transform: none;
+  box-shadow: none;
 }
 
-/* Mobile responsive buttons */
+/* small inline spinner placeholder (make sure your Spinner supports 'small' prop) */
+.spinner.small {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+/* mobile responsiveness */
 @media (max-width: 640px) {
-  .actions { 
-    gap: 0.4rem; 
-  }
-  .actions button { 
-    padding: 0.45rem 0.6rem; 
-    font-size: 0.8rem; 
-  }
+  .actions { gap: 0.4rem; }
+  .actions button { padding: 0.45rem 0.6rem; font-size: 0.8rem; min-width: 64px; }
 }
-
 @media (max-width: 480px) {
-  .actions { 
-    gap: 0.3rem; 
-  }
-  .actions button { 
-    padding: 0.4rem 0.5rem; 
-    font-size: 0.75rem; 
-    letter-spacing: 0.3px;
-  }
+  .actions { gap: 0.3rem; }
+  .actions button { padding: 0.4rem 0.5rem; font-size: 0.75rem; letter-spacing: 0.3px; min-width: 56px; }
 }
 
-/* keep old tiny tweak */
-.goal-item { min-width: 0; }
+/* dimmed state used by JS when saving/deleting a single row */
+.goal-item.dim {
+  opacity: 0.6;
+  transform: none;
+  pointer-events: none;
+  filter: grayscale(0.02) blur(0.0px);
+}
+
+/* edit modal basics (simple neutral styling) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+}
+.modal {
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 1rem;
+  border-radius: 12px;
+  min-width: 320px;
+  max-width: 92%;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.6);
+}
+.modal h3 { margin: 0 0 0.5rem 0; }
+.modal input[type="datetime-local"] {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.04);
+  background: var(--surface-light);
+  color: var(--text-primary);
+}
+.modal .modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+.modal .modal-actions button {
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.03);
+  color: var(--text-primary);
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+/* undo banner (sticky subtle bar at bottom of page) */
+.undo-banner {
+  position: fixed;
+  right: 1rem;
+  bottom: 1.25rem;
+  background: linear-gradient(180deg, rgba(14,165,233,0.08), rgba(14,165,233,0.04));
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(14,165,233,0.12);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  z-index: 90;
+}
+
+/* inline editor textarea (auto-resize) */
+.goal-item .content .inline-editor {
+  width: 100%;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.04);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  line-height: 1.35;
+  resize: none;           /* user can't drag-resize — we auto-size */
+  overflow: hidden;       /* hide scrollbars while auto-sizing */
+  min-height: 38px;
+  max-height: 400px;      /* safety cap */
+  box-sizing: border-box;
+  outline: none;
+}
+.goal-item .content .inline-editor:focus {
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.06);
+  border-color: var(--primary);
+}

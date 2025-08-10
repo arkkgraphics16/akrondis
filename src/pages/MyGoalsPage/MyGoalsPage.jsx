@@ -308,23 +308,50 @@ export function MyGoalsPage() {
             return (
               <li key={g.id} className={`goal-item ${isDim ? 'dim' : ''}`}>
                 <div className="content" onClick={() => startEditContent(g)}>
-                  {editingContentId === g.id ? (
-                    <input
-                      autoFocus
-                      value={editingContentValue}
-                      onChange={e => setEditingContentValue(e.target.value)}
-                      onBlur={() => saveContent(g)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          saveContent(g);
-                        } else if (e.key === 'Escape') {
-                          cancelEditContent();
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span>{g.content}</span>
-                  )}
+                    {editingContentId === g.id ? (
+                      <textarea
+                        ref={el => {
+                          // attach ref and auto-focus via DOM when mounted
+                          if (el) {
+                            el.focus();
+                            // put caret at end
+                            const len = el.value.length;
+                            el.setSelectionRange(len, len);
+                            // auto-resize initially
+                            el.style.height = 'auto';
+                            el.style.height = el.scrollHeight + 'px';
+                          }
+                        }}
+                        value={editingContentValue}
+                        onChange={e => {
+                          setEditingContentValue(e.target.value);
+                          // auto-size while typing
+                          const el = e.target;
+                          el.style.height = 'auto';
+                          el.style.height = Math.min(el.scrollHeight, 400) + 'px';
+                        }}
+                        onInput={e => {
+                          // redundant safe-resize for some browsers
+                          const el = e.target;
+                          el.style.height = 'auto';
+                          el.style.height = Math.min(el.scrollHeight, 400) + 'px';
+                        }}
+                        onBlur={() => saveContent(g)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            // Enter = save (Shift+Enter inserts newline)
+                            e.preventDefault();
+                            saveContent(g);
+                          } else if (e.key === 'Escape') {
+                            cancelEditContent();
+                          }
+                        }}
+                        className="inline-editor"
+                        rows={1}
+                      />
+                    ) : (
+                      <span>{g.content}</span>
+                    )}
                 </div>
 
                 <div className="meta">
