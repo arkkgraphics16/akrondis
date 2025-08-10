@@ -1,138 +1,179 @@
-/* src/pages/MyGoalsPage/MyGoalsPage.css */
-
-/* page shell */
-.page {
-  padding: 1.5rem;
-  background: var(--surface);
+/* src/pages/NewGoalPage/NewGoalPage.css */
+.new-goal-page {
+  max-width: 700px;
+  margin: 0 auto;
 }
 
-/* tag form */
-.tag-form {
-  display: flex;
-  gap: .5rem;
-  margin-bottom: 1rem;
-}
-.tag-form input {
-  flex: 1;
-  padding: .5rem;
-  border: 1px solid #1e3a47;
-  border-radius: 4px;
-  background: var(--surface-light);
+.new-goal-page h1 {
+  margin-bottom: 1.5rem;
   color: var(--text-primary);
+  font-size: 1.75rem;
+  font-weight: 700;
 }
-.tag-form button {
-  padding: .5rem 1rem;
-  background: var(--primary);
+
+.new-goal-page form {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--surface-light);
+}
+
+.new-goal-page fieldset {
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: filter .15s, transform .06s;
-}
-.tag-form button:hover { filter: brightness(1.05); transform: translateY(-1px); }
-
-/* list layout */
-.goal-list {
-  list-style: none;
-  display: grid;
-  gap: 1rem;
-}
-
-/* item card */
-.goal-item {
-  padding: 1rem;
-  background: var(--surface-light);
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.02);
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.goal-item .content {
-  margin-bottom: .25rem;
-  font-size: 1.05rem;
-  color: var(--text-primary);
-  word-break: break-word;
-}
-
-.goal-item .meta {
-  display: flex;
   gap: 1rem;
-  font-size: .85rem;
+}
+
+.new-goal-page label {
+  font-size: 0.9rem;
   color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+/* deadline instruction text */
+.deadline-instruction {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-style: italic;
+  margin-bottom: -0.25rem;
+}
+
+/* inputs, textarea, select */
+.new-goal-page input,
+.new-goal-page textarea,
+.new-goal-page select {
+  padding: 0.62rem;
+  background: var(--surface-light);
+  border: 1px solid #1e3a47;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: border-color 0.15s, transform 0.06s;
+}
+
+.new-goal-page select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-primary) 50%),
+                    linear-gradient(135deg, var(--text-primary) 50%, transparent 50%),
+                    linear-gradient(to right, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+  background-position: calc(100% - 1.2rem) calc(1em + 2px), calc(100% - 0.9rem) calc(1em + 2px), 100% 0;
+  background-size: 6px 6px, 6px 6px, 2.5rem 2.5rem;
+  background-repeat: no-repeat;
+  padding-right: 2.4rem;
+}
+
+/* datetime wrapper */
+.datetime-wrap {
+  display: flex;
+  gap: 0.5rem;
   align-items: center;
 }
 
-/* status badge */
-.status {
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+/* native datetime input styling */
+.datetime-wrap input[type="datetime-local"] {
+  flex: 1;
+  min-width: 0;
   color: var(--text-primary);
-  font-size: 0.8rem;
-}
-
-/* status colors (use palette-friendly tones) */
-.status.doingit  { background: #64748b; } /* muted gray-blue */
-.status.needhelp { background: #dc2626; } /* red */
-.status.done     { background: #16a34a; } /* green */
-
-/* actions (buttons row) */
-.actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  flex-wrap: wrap;
-}
-
-/* base button style inside actions */
-.actions button {
-  padding: 0.5rem 0.75rem;
+  background: var(--surface-light);
+  border: 1px solid #1e3a47;
   border-radius: 8px;
-  border: none;
+}
+
+/* hide native calendar icon (Chromium / WebKit) */
+.datetime-wrap input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* fallback: hide other native pickers indicators */
+.datetime-wrap input[type="date"]::-webkit-calendar-picker-indicator,
+.datetime-wrap input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  opacity: 0;
+}
+
+/* calendar button (custom SVG trigger) */
+.calendar-btn {
+  background: var(--surface-light);
+  border: 1px solid #1e3a47;
+  color: var(--text-primary);
+  padding: 0.5rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.6px;
-  transition: transform .06s, filter .12s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+  min-width: 44px;
+  height: 44px;
 }
 
-/* individual button colors */
-.actions button.help {
-  background: #dc2626; /* Need Help - red */
-  color: var(--text-primary);
-}
-.actions button.miss {
-  background: #64748b; /* Doing It - muted gray */
-  color: var(--text-primary);
-}
-.actions button.done {
-  background: #16a34a; /* Done - green */
-  color: var(--text-primary);
+.calendar-btn:hover:not(:disabled) {
+  filter: brightness(1.05);
 }
 
-/* hover / active */
-.actions button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.03); }
-.actions button:active:not(:disabled) { transform: translateY(0); }
+.calendar-btn svg {
+  flex-shrink: 0;
+}
 
-/* disabled state */
-.actions button:disabled {
+/* textarea */
+.new-goal-page textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* error box */
+.new-goal-page .error {
+  color: var(--error);
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+  padding: 0.7rem;
+  background: rgba(239,68,68,0.06);
+  border-radius: 6px;
+  border-left: 3px solid var(--error);
+}
+
+/* submit btn */
+.new-goal-page button[type="submit"] {
+  margin-top: 0.75rem;
+  padding: 0.65rem 1.1rem;
+  background: var(--primary);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.new-goal-page button[type="submit"]:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  filter: none;
-  transform: none;
 }
 
-/* small responsive tweak */
+/* small responsive tweaks */
 @media (max-width: 640px) {
-  .goal-item { padding: 0.75rem; }
-  .actions { gap: 0.4rem; }
-  .actions button { padding: 0.45rem 0.6rem; font-size: 0.8rem; }
+  .new-goal-page {
+    padding: 0 1rem;
+  }
+  .calendar-btn {
+    padding: 0.45rem;
+    min-width: 40px;
+    height: 40px;
+  }
 }
-
-/* keep old tiny tweak */
-.goal-item { min-width: 0; }
