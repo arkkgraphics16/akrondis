@@ -25,13 +25,20 @@ body {
   min-height: 100vh;
 }
 
+/* Prevent background scroll when sidebar open on mobile */
+.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* layout */
 .layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Header - kept static on desktop, fixed on mobile */
+/* Header */
 header {
   background: var(--surface);
   padding: 1rem;
@@ -39,6 +46,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  z-index: 1400;
 }
 
 /* header-left */
@@ -54,13 +62,34 @@ header h1 {
   margin: 0;
 }
 
+/* Backdrop for mobile overlay */
+.backdrop {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.38);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s ease;
+  z-index: 1220;
+  pointer-events: none;
+}
+
+.backdrop.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
 /* Main content + sidebar layout */
 .content {
   display: flex;
   flex: 1;
 }
 
-/* Sidebar container */
+/* Sidebar */
 .sidebar {
   background: var(--surface);
   color: var(--text-primary);
@@ -70,15 +99,16 @@ header h1 {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - var(--header-height));
-  /* ensure sidebar stacking above main content on mobile */
-  z-index: 1200;
+  z-index: 1250;
+  box-sizing: border-box;
 }
 
-/* Sidebar Navigation */
+/* Make nav scrollable so footer stays pinned */
 .sidebar nav {
   flex: 1;
-  overflow-y: auto; /* <--- important: make nav scrollable so footer stays pinned */
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding-right: 6px; /* avoid overlay scrollbar hitting content */
 }
 
 .sidebar nav ul {
@@ -91,14 +121,16 @@ header h1 {
   margin-bottom: 0.5rem;
 }
 
-/* Sidebar Footer (sticky to bottom via margin-top:auto) */
+/* Sidebar Footer pinned */
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid var(--surface-light);
   flex-shrink: 0;
+  background: transparent;
 }
 
+/* User block */
 .user-block {
   display: flex;
   gap: 0.75rem;
@@ -163,7 +195,6 @@ header h1 {
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
-  background-clip: padding-box;
 }
 
 .auth-btn.primary {
@@ -196,6 +227,7 @@ header h1 {
   color: white;
 }
 
+/* main area */
 main {
   flex: 1;
   padding: 2rem;
@@ -235,20 +267,20 @@ main {
   padding: 0.5rem;
 }
 
-/* MOBILE tweaks: fix header, make sidebar overlay and scroll nav only */
+/* MOBILE tweaks */
 @media (max-width: 768px) {
   .hamburger {
     display: block;
   }
 
-  /* make header fixed on mobile so it doesn't disappear while swiping */
+  /* fix header so it doesn't disappear when swiping */
   header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: var(--header-height);
-    z-index: 1300;
+    z-index: 1400;
     display: flex;
     align-items: center;
     padding: 0 1rem;
@@ -256,13 +288,12 @@ main {
     background: var(--surface);
   }
 
-  /* reserve space for fixed header so content doesn't jump under it */
+  /* reserve space under fixed header so content does not jump */
   .content {
-    position: relative;
     padding-top: var(--header-height);
   }
 
-  /* mobile sidebar behaves as overlay under the fixed header */
+  /* sidebar overlay under fixed header */
   .sidebar {
     position: fixed;
     top: var(--header-height);
@@ -272,29 +303,26 @@ main {
     transform: translateX(-100%); /* hidden by default */
     transition: transform 0.28s ease;
     box-shadow: 2px 0 12px rgba(0,0,0,0.35);
-    z-index: 1250; /* above content but below modal */
   }
 
-  /* class used to open sidebar (toggle in JS sets/removes .mobile-hidden) */
+  /* visible state */
   .sidebar:not(.mobile-hidden) {
     transform: translateX(0);
   }
 
-  /* main area on mobile */
   main {
     padding: 1rem;
     width: 100%;
   }
 }
 
-/* Desktop - sidebar always visible */
+/* Desktop behavior */
 @media (min-width: 769px) {
   .sidebar.mobile-hidden {
     transform: none !important;
     position: static !important;
   }
 
-  /* keep header static on desktop (original behaviour) */
   header {
     position: static;
     height: auto;
@@ -304,79 +332,6 @@ main {
   .content {
     padding-top: 0;
   }
-}
-
-/* Auth area extras */
-.auth-area {
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid var(--surface-light);
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.user-name {
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.discord-nick {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  font-style: italic;
-}
-
-.auth-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.auth-btn {
-  padding: 0.5rem 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.auth-btn.primary {
-  background: var(--primary);
-  color: white;
-}
-
-.auth-btn.primary:hover {
-  background: #2563eb;
-}
-
-.auth-btn.secondary {
-  background: var(--surface-light);
-  color: var(--text-secondary);
-  border: 1px solid var(--surface-light);
-}
-
-.auth-btn.secondary:hover {
-  background: var(--bg);
-  color: var(--text-primary);
-}
-
-.auth-btn.danger {
-  background: transparent;
-  color: var(--error);
-  border: 1px solid var(--error);
-}
-
-.auth-btn.danger:hover {
-  background: var(--error);
-  color: white;
 }
 
 /* Nick Modal */
@@ -390,7 +345,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1400; /* above sidebar */
+  z-index: 1500;
 }
 
 .nick-box {

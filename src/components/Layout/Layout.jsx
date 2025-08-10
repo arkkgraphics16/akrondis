@@ -19,6 +19,18 @@ export function Layout() {
     }
   }, [user]);
 
+  // prevent background scroll when mobile sidebar open
+  useEffect(() => {
+    const isMobile = window.innerWidth <= 768;
+    if (sidebarOpen && isMobile) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+    // cleanup on unmount
+    return () => document.body.classList.remove('no-scroll');
+  }, [sidebarOpen]);
+
   const saveNick = async () => {
     if (!user) { addToast('You must be signed in'); return; }
     const cleaned = (nick || '').toString().trim();
@@ -37,7 +49,7 @@ export function Layout() {
     <div className="layout">
       <header>
         <div className="header-left">
-          <button 
+          <button
             className="hamburger"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label="Toggle menu"
@@ -48,13 +60,21 @@ export function Layout() {
         </div>
       </header>
 
+      {/* backdrop for mobile overlay; clicking closes sidebar */}
+      <div
+        className={`backdrop ${sidebarOpen ? 'visible' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden={!sidebarOpen}
+      />
+
       <div className={`content ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        <aside className={`sidebar ${!sidebarOpen ? 'mobile-hidden' : ''}`}>
+        <aside className={`sidebar ${!sidebarOpen ? 'mobile-hidden' : ''}`} aria-hidden={!sidebarOpen && window.innerWidth<=768}>
           <nav className="main-nav">
             <ul>
               <li><NavLink to="/lists" onClick={() => setSidebarOpen(false)}>Lists</NavLink></li>
               <li><NavLink to="/new-goal" onClick={() => setSidebarOpen(false)}>New Goal</NavLink></li>
               <li><NavLink to="/my-goals" onClick={() => setSidebarOpen(false)}>My Goals</NavLink></li>
+              {/* add more items here */}
             </ul>
           </nav>
 
@@ -88,13 +108,13 @@ export function Layout() {
                   <button onClick={() => { setNick(user.discordNick || ''); setEditing(true); }} className="auth-btn">
                     Set Discord Nick
                   </button>
-                  <button onClick={() => signOut()} className="auth-btn danger">
+                  <button onClick={() => { setSidebarOpen(false); signOut(); }} className="auth-btn danger">
                     Log Out
                   </button>
                 </div>
               </>
             ) : (
-              <button onClick={() => signInWithGoogle()} className="auth-btn primary">
+              <button onClick={() => { setSidebarOpen(false); signInWithGoogle(); }} className="auth-btn primary">
                 Sign in with Google
               </button>
             )}
