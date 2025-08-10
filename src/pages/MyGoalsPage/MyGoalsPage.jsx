@@ -11,8 +11,11 @@ export function MyGoalsPage() {
   const { user, signInWithGoogle } = useAuth();
   const addToast = useToast();
 
+  const tabs = ['All', 'One-Time', 'Daily', 'Weekly'];
+  const [activeTab, setActiveTab] = useState('All');
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [expandedGoals, setExpandedGoals] = useState(new Set());
 
   const renderCountdown = utcISO => {
     const ms = msLeft(utcISO);
@@ -53,6 +56,36 @@ export function MyGoalsPage() {
     setLoading(false);
   };
 
+  const filterByTab = goal => {
+    // Hide expired goals
+    if (msLeft(goal.utcDeadline) <= 0) return false;
+    
+    if (activeTab === 'All') return true;
+    return goal.type === activeTab;
+  };
+
+  const sortByTimeLeft = (a, b) => {
+    const msA = msLeft(a.utcDeadline);
+    const msB = msLeft(b.utcDeadline);
+    return msA - msB; // Ascending: closest deadline first
+  };
+
+  const toggleGoalExpansion = (goalId) => {
+    const newExpanded = new Set(expandedGoals);
+    if (newExpanded.has(goalId)) {
+      newExpanded.delete(goalId);
+    } else {
+      newExpanded.add(goalId);
+    }
+    setExpandedGoals(newExpanded);
+  };
+
+  const isGoalExpanded = (goalId) => expandedGoals.has(goalId);
+
+  const shouldShowExpandButton = (content) => {
+    return content.length > 80 || content.includes('\n');
+  };
+
   if (!user) {
     return (
       <main className="page my-goals-page">
@@ -63,19 +96,48 @@ export function MyGoalsPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <main className="page">
+        <Spinner />
+      </main>
+    );
+  }
+
   return (
-    <main className="page my-goals-page">
-      <h1>My Goals</h1>
+    <main className="my-goals-page">
+      <nav className="tabs">
+        {tabs.map(t => (
+          <button
+            key={t}
+            className={t === activeTab ? 'active' : ''}
+            onClick={() => setActiveTab(t)}
+          >
+            {t}
+          </button>
+        ))}
+      </nav>
 
-      {loading && <Spinner />}
+      {goals.length === 0 && <p>No goals yet. Create one.</p>}
 
-      {!loading && goals.length === 0 && <p>No goals yet. Create one.</p>}
-
-      {!loading && goals.length > 0 && (
+      {goals.length > 0 && (
         <ul className="goal-list">
-          {goals.map(g => (
+          {goals.filter(filterByTab).sort(sortByTimeLeft).map(g => (
             <li key={g.id} className="goal-item">
-              <div className="content">{g.content}</div>
+              <div className="content-container">
+                <div className={`content ${isGoalExpanded(g.id) ? 'expanded' : 'truncated'}`}>
+                  {g.content}
+                </div>
+                {shouldShowExpandButton(g.content) && (
+                  <button 
+                    className="expand-button"
+                    onClick={() => toggleGoalExpansion(g.id)}
+                    aria-label={isGoalExpanded(g.id) ? 'Collapse goal' : 'Expand goal'}
+                  >
+                    {isGoalExpanded(g.id) ? '↑' : '↓'}
+                  </button>
+                )}
+              </div>
               <div className="meta">
                 <span className="countdown">{renderCountdown(g.utcDeadline)}</span>
                 <span className={`status ${g.status.replace(' ', '').toLowerCase()}`}>{g.status}</span>

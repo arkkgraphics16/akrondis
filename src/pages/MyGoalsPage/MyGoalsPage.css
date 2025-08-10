@@ -1,72 +1,186 @@
 /* src/pages/MyGoalsPage/MyGoalsPage.css */
 
-/* page shell - NO BACKGROUND, BLEND WITH MAIN */
-.page {
-  padding: 0; /* Remove all padding - main handles it */
-  background: transparent; /* Blend with main bg */
-  min-height: calc(100vh - var(--header-height));
-  padding-top: 70px; 
+.my-goals-page {
+  padding-top: 100px; 
 }
 
-/* tag form */
-.tag-form {
+.page {
+  padding: 1rem;
+  background: var(--surface);
+  min-height: calc(100vh - var(--header-height));
+}
+
+/* Mobile - very tight */
+@media (max-width: 768px) {
+  .page {
+    padding: 0.75rem;
+  }
+}
+
+/* Very small screens - extremely tight */
+@media (max-width: 480px) {
+  .page {
+    padding: 0.5rem;
+  }
+}
+
+/* Large screens - still tight but readable */
+@media (min-width: 1200px) {
+  .page {
+    padding: 1.25rem;
+  }
+}
+
+.tabs {
   display: flex;
-  gap: .5rem;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
-.tag-form input {
-  flex: 1;
-  padding: .5rem;
-  border: 1px solid #1e3a47;
-  border-radius: 4px;
+
+.tabs button {
+  padding: 0.5rem 1rem;
   background: var(--surface-light);
-  color: var(--text-primary);
-}
-.tag-form button {
-  padding: .5rem 1rem;
-  background: var(--primary);
   border: none;
   border-radius: 4px;
+  color: var(--text-primary);
   cursor: pointer;
-  transition: filter .15s, transform .06s;
+  transition: filter .2s;
 }
-.tag-form button:hover { filter: brightness(1.05); transform: translateY(-1px); }
 
-/* list layout */
+/* Mobile tab buttons - smaller */
+@media (max-width: 480px) {
+  .tabs {
+    gap: 0.3rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .tabs button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+.tabs button:hover { filter: brightness(1.1); }
+.tabs .active {
+  background: var(--primary);
+}
+
 .goal-list {
   list-style: none;
   display: grid;
-  gap: 1rem;
 }
 
-/* item card - RESPONSIVE PADDING */
-.goal-item {
-  padding: 1rem;
-  background: var(--surface-light);
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.02);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-@media (max-width: 640px) {
-  .goal-item { 
-    padding: 0.75rem; 
+/* Tighter gaps on mobile */
+@media (max-width: 768px) {
+  .goal-list {
+    gap: 0.4rem;
   }
 }
 
 @media (max-width: 480px) {
-  .goal-item { 
-    padding: 0.5rem; 
+  .goal-list {
+    gap: 0.3rem;
+  }
+}
+
+/* Slightly larger gap on big screens but still tight */
+@media (min-width: 1200px) {
+  .goal-list {
+    gap: 0.6rem;
+  }
+}
+
+.goal-item {
+  padding: 0.2rem;
+  background: var(--surface-light);
+  border-radius: 6px;
+}
+
+/* Tighter goal item padding */
+@media (max-width: 768px) {
+  .goal-item {
+    padding: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .goal-item {
+    padding: 0.3rem;
+  }
+}
+
+.content-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Tighter content container on mobile */
+@media (max-width: 480px) {
+  .content-container {
+    gap: 0.3rem;
+    margin-bottom: 0.3rem;
   }
 }
 
 .goal-item .content {
-  margin-bottom: .25rem;
-  font-size: 1.05rem;
+  flex: 1;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+/* Smaller font on mobile */
+@media (max-width: 480px) {
+  .goal-item .content {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+}
+
+.goal-item .content.truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goal-item .content.expanded {
+  white-space: pre-wrap;
+}
+
+.expand-button {
+  background: var(--surface);
+  border: 1px solid var(--text-secondary);
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Smaller expand button on mobile */
+@media (max-width: 480px) {
+  .expand-button {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.75rem;
+    min-width: 1.3rem;
+    height: 1.3rem;
+  }
+}
+
+.expand-button:hover {
+  background: var(--primary);
   color: var(--text-primary);
-  word-break: break-word;
+  border-color: var(--primary);
 }
 
 .goal-item .meta {
@@ -75,28 +189,51 @@
   font-size: .85rem;
   color: var(--text-secondary);
   align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
 }
 
-/* status badge */
+/* Tighter meta on mobile */
+@media (max-width: 768px) {
+  .goal-item .meta {
+    gap: 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .goal-item .meta {
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
 .status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-weight: bold;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  color: var(--text-primary);
   font-size: 0.8rem;
 }
 
-/* status colors (use palette-friendly tones) */
-.status.doingit  { background: #64748b; } /* muted gray-blue */
-.status.needhelp { background: #dc2626; } /* red */
-.status.done     { background: #16a34a; } /* green */
+/* Smaller status badges on mobile */
+@media (max-width: 480px) {
+  .status {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.7rem;
+  }
+}
+
+.status.doingit  { background: #64748b; } /* darker gray */
+.status.needhelp { background: #dc2626; } /* darker red */
+.status.done     { background: #16a34a; } /* darker green */
 
 /* actions (buttons row) */
 .actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.5rem;
   flex-wrap: wrap;
 }
 
