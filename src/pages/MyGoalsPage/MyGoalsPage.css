@@ -4,9 +4,10 @@
   padding-top: 100px; 
 }
 
+/* page shell - NO BACKGROUND, BLEND WITH MAIN */
 .page {
-  padding: 1rem;
-  background: var(--surface);
+  padding: 1rem; 
+  background: transparent; /* Blend with main bg */
   min-height: calc(100vh - var(--header-height));
 }
 
@@ -31,6 +32,7 @@
   }
 }
 
+/* Tabs styling - same as ListsPage */
 .tabs {
   display: flex;
   gap: 0.5rem;
@@ -66,6 +68,31 @@
   background: var(--primary);
 }
 
+/* tag form */
+.tag-form {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.tag-form input {
+  flex: 1;
+  padding: .5rem;
+  border: 1px solid #1e3a47;
+  border-radius: 4px;
+  background: var(--surface-light);
+  color: var(--text-primary);
+}
+.tag-form button {
+  padding: .5rem 1rem;
+  background: var(--primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: filter .15s, transform .06s;
+}
+.tag-form button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+/* list layout - same as ListsPage */
 .goal-list {
   list-style: none;
   display: grid;
@@ -91,10 +118,12 @@
   }
 }
 
+/* item card - same as ListsPage structure */
 .goal-item {
   padding: 0.2rem;
   background: var(--surface-light);
   border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.02);
 }
 
 /* Tighter goal item padding */
@@ -110,6 +139,7 @@
   }
 }
 
+/* Content container with expand button - same as ListsPage */
 .content-container {
   display: flex;
   align-items: flex-start;
@@ -129,6 +159,8 @@
   flex: 1;
   font-size: 1.1rem;
   line-height: 1.4;
+  color: var(--text-primary);
+  word-break: break-word;
 }
 
 /* Smaller font on mobile */
@@ -149,6 +181,7 @@
   white-space: pre-wrap;
 }
 
+/* Expand button - same as ListsPage */
 .expand-button {
   background: var(--surface);
   border: 1px solid var(--text-secondary);
@@ -190,7 +223,6 @@
   color: var(--text-secondary);
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
 }
 
 /* Tighter meta on mobile */
@@ -208,13 +240,13 @@
   }
 }
 
+/* status badge */
 .status {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  font-weight: 600;
   padding: 0.2rem 0.5rem;
   border-radius: 3px;
   color: var(--text-primary);
-  font-weight: bold;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
-  font-weight: 600;
   font-size: 0.8rem;
 }
 
@@ -226,14 +258,16 @@
   }
 }
 
-.status.doingit  { background: #64748b; } /* darker gray */
-.status.needhelp { background: #dc2626; } /* darker red */
-.status.done     { background: #16a34a; } /* darker green */
+/* status colors (use palette-friendly tones) */
+.status.doingit  { background: #64748b; } /* muted gray-blue */
+.status.needhelp { background: #dc2626; } /* red */
+.status.done     { background: #16a34a; } /* green */
 
 /* actions (buttons row) */
 .actions {
   display: flex;
   gap: 0.5rem;
+  margin-top: 0.5rem;
   flex-wrap: wrap;
 }
 

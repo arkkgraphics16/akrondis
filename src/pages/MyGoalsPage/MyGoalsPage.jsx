@@ -96,16 +96,10 @@ export function MyGoalsPage() {
     );
   }
 
-  if (loading) {
-    return (
-      <main className="page">
-        <Spinner />
-      </main>
-    );
-  }
-
   return (
-    <main className="my-goals-page">
+    <main className="page my-goals-page">
+      <h1>My Goals</h1>
+
       <nav className="tabs">
         {tabs.map(t => (
           <button
@@ -118,9 +112,11 @@ export function MyGoalsPage() {
         ))}
       </nav>
 
-      {goals.length === 0 && <p>No goals yet. Create one.</p>}
+      {loading && <Spinner />}
 
-      {goals.length > 0 && (
+      {!loading && goals.length === 0 && <p>No goals yet. Create one.</p>}
+
+      {!loading && goals.length > 0 && (
         <ul className="goal-list">
           {goals.filter(filterByTab).sort(sortByTimeLeft).map(g => (
             <li key={g.id} className="goal-item">
