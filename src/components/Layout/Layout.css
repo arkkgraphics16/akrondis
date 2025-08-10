@@ -47,6 +47,11 @@ header {
   justify-content: space-between;
   align-items: center;
   z-index: 1400;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
 }
 
 /* header-left */
@@ -87,9 +92,10 @@ header h1 {
 .content {
   display: flex;
   flex: 1;
+  padding-top: var(--header-height);
 }
 
-/* Sidebar */
+/* Sidebar - FIXED ON DESKTOP */
 .sidebar {
   background: var(--surface);
   color: var(--text-primary);
@@ -98,9 +104,12 @@ header h1 {
   border-right: 1px solid var(--surface-light);
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
   z-index: 1250;
   box-sizing: border-box;
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
 }
 
 /* Make nav scrollable so footer stays pinned */
@@ -227,13 +236,14 @@ header h1 {
   color: white;
 }
 
-/* main area */
+/* main area - ACCOUNT FOR FIXED SIDEBAR */
 main {
   flex: 1;
-  padding: 2rem;
   background: var(--bg);
   overflow-y: auto;
-  min-height: 0;
+  min-height: calc(100vh - var(--header-height));
+  margin-left: 250px; /* Account for fixed sidebar */
+  padding: 0; /* Remove default padding - let pages handle their own */
 }
 
 /* links */
@@ -273,24 +283,11 @@ main {
     display: block;
   }
 
-  /* fix header so it doesn't disappear when swiping */
-  header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--header-height);
-    z-index: 1400;
-    display: flex;
-    align-items: center;
-    padding: 0 1rem;
-    border-bottom: 1px solid var(--surface-light);
-    background: var(--surface);
-  }
-
-  /* reserve space under fixed header so content does not jump */
-  .content {
-    padding-top: var(--header-height);
+  /* Reset main for mobile */
+  main {
+    margin-left: 0;
+    width: 100%;
+    padding: 0; /* Still no padding - pages handle it */
   }
 
   /* sidebar overlay under fixed header */
@@ -309,28 +306,13 @@ main {
   .sidebar:not(.mobile-hidden) {
     transform: translateX(0);
   }
-
-  main {
-    padding: 1rem;
-    width: 100%;
-  }
 }
 
 /* Desktop behavior */
 @media (min-width: 769px) {
   .sidebar.mobile-hidden {
     transform: none !important;
-    position: static !important;
-  }
-
-  header {
-    position: static;
-    height: auto;
-    padding: 1rem;
-  }
-
-  .content {
-    padding-top: 0;
+    position: fixed !important; /* Ensure it stays fixed */
   }
 }
 
