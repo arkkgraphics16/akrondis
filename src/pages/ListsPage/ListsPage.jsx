@@ -10,6 +10,7 @@ export function ListsPage() {
   const [activeTab, setActiveTab] = useState('All');
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedGoals, setExpandedGoals] = useState(new Set());
 
   useEffect(() => {
     fetchAllGoals()
@@ -40,6 +41,22 @@ export function ListsPage() {
     return `${h}h ${m}m`;
   };
 
+  const toggleGoalExpansion = (goalId) => {
+    const newExpanded = new Set(expandedGoals);
+    if (newExpanded.has(goalId)) {
+      newExpanded.delete(goalId);
+    } else {
+      newExpanded.add(goalId);
+    }
+    setExpandedGoals(newExpanded);
+  };
+
+  const isGoalExpanded = (goalId) => expandedGoals.has(goalId);
+
+  const shouldShowExpandButton = (content) => {
+    return content.length > 80 || content.includes('\n');
+  };
+
   if (loading) {
     return (
       <main className="page">
@@ -65,7 +82,20 @@ export function ListsPage() {
       <ul className="goal-list">
         {goals.filter(filterByTab).sort(sortByTimeLeft).map(g => (
           <li key={g.id} className="goal-item">
-            <div className="content">{g.content}</div>
+            <div className="content-container">
+              <div className={`content ${isGoalExpanded(g.id) ? 'expanded' : 'truncated'}`}>
+                {g.content}
+              </div>
+              {shouldShowExpandButton(g.content) && (
+                <button 
+                  className="expand-button"
+                  onClick={() => toggleGoalExpansion(g.id)}
+                  aria-label={isGoalExpanded(g.id) ? 'Collapse goal' : 'Expand goal'}
+                >
+                  {isGoalExpanded(g.id) ? '↑' : '↓'}
+                </button>
+              )}
+            </div>
             <div className="meta">
               <span className="user">@{g.discordNick || g.discordTag || 'unknown'}</span>
               <span className="countdown">{renderCountdown(g.utcDeadline)}</span>
