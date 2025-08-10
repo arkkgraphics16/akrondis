@@ -10,7 +10,7 @@ export function Layout() {
 
   const [editing, setEditing] = useState(false);
   const [nick, setNick] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
