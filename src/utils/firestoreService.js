@@ -1,6 +1,4 @@
 // src/utils/firestoreService.js
-// Firestore v9 helpers - backward compatible and new users/{uid}/goals path
-
 import {
   collection,
   addDoc,
@@ -10,11 +8,10 @@ import {
   Timestamp,
   doc,
   updateDoc,
+  setDoc,
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
-
-/* ---------- Helpers ---------- */
 
 function toTimestampOrNull(val) {
   if (val == null) return null;
@@ -33,7 +30,6 @@ function userGoalsCol(uid) {
 }
 
 /* ---------- Backwards-compatible root fetch (used by ListsPage) ---------- */
-
 export async function fetchAllGoals() {
   const rootCol = collection(db, 'goals');
   const snap = await getDocs(rootCol);
@@ -50,17 +46,8 @@ export async function fetchAllGoals() {
   });
 }
 
-/* ---------- New / preferred API: users/{uid}/goals ---------- */
-
-/**
- * addGoal(...) supports two forms for compatibility:
- *  - addGoal(uid, goalData)            -> creates under users/{uid}/goals
- *  - addGoal(goalData)                 -> legacy behavior: if goalData contains ownerUid/uid it will create under users/{ownerUid}/goals; otherwise it creates in root /goals (legacy)
- *
- * goalData must include content (non-empty string).
- */
+/* ---------- Preferred API: users/{uid}/goals ---------- */
 export async function addGoal(uidOrGoalData, maybeGoalData) {
-  // Determine calling form
   let uid = null;
   let goalData = null;
 
@@ -69,33 +56,25 @@ export async function addGoal(uidOrGoalData, maybeGoalData) {
     goalData = maybeGoalData;
   } else {
     goalData = uidOrGoalData;
-    // try to infer uid from payload
     uid = (goalData && (goalData.ownerUid || goalData.uid)) || null;
   }
 
-  if (!goalData || typeof goalData !== 'object') {
-    throw new Error('goalData required');
-  }
-  if (!goalData.content || typeof goalData.content !== 'string' || goalData.content.trim() === '') {
-    throw new Error('content is required');
-  }
+  if (!goalData || typeof goalData !== 'object') throw new Error('goalData required');
+  if (!goalData.content || typeof goalData.content !== 'string' || goalData.content.trim() === '') throw new Error('content is required');
 
-  // If no uid available => fallback to legacy root collection behavior (keeps old clients working)
   if (!uid) {
-    // convert deadline if present
+    // legacy root create
     const utcDeadlineTs = goalData.utcDeadline ? toTimestampOrNull(goalData.utcDeadline) : null;
     const payload = {
       ...goalData,
       utcDeadline: utcDeadlineTs,
       createdAt: Timestamp.now(),
-      // keep legacy key
       userKey: goalData.ownerUid || goalData.uid || null
     };
     const ref = await addDoc(collection(db, 'goals'), payload);
     return { id: ref.id, ...payload };
   }
 
-  // Preferred path: create under users/{uid}/goals
   const utcDeadlineTs = goalData.utcDeadline ? toTimestampOrNull(goalData.utcDeadline) : null;
   const payload = {
     content: goalData.content.trim(),
@@ -108,13 +87,30 @@ export async function addGoal(uidOrGoalData, maybeGoalData) {
   };
 
   const ref = await addDoc(userGoalsCol(uid), payload);
-  return { id: ref.id, ...payload };
+  const result = { id: ref.id, ...payload };
+
+  // MIRROR: create a root /goals document with same id for ListsPage compatibility
+  // Best-effort: if root write fails because of rules, ignore it.
+  try {
+    const rootDocRef = doc(db, 'goals', ref.id);
+    // keep minimal public fields so lists can show them:
+    await setDoc(rootDocRef, {
+      content: payload.content,
+      utcDeadline: payload.utcDeadline,
+      status: payload.status,
+      ownerUid: uid,
+      createdAt: serverTimestamp(),
+      // keep a reference to users path if you want
+      mirroredFrom: `users/${uid}/goals/${ref.id}`
+    }, { merge: true });
+  } catch (e) {
+    // swallow - mirror is best-effort
+    console.warn('mirror create to /goals failed:', e?.message || e);
+  }
+
+  return result;
 }
 
-/**
- * fetchGoalsByUser(uid) - returns non-deleted goals under users/{uid}/goals
- * Timestamps are returned as Firestore Timestamps.
- */
 export async function fetchGoalsByUser(uid) {
   if (!uid) throw new Error('uid required');
   const q = query(userGoalsCol(uid), where('deleted', '==', false));
@@ -123,8 +119,6 @@ export async function fetchGoalsByUser(uid) {
   snap.forEach(d => out.push({ id: d.id, ...d.data() }));
   return out;
 }
-
-/* ---------- Generic update + specific helpers ---------- */
 
 export async function updateGoal(uid, goalId, updates = {}) {
   if (!uid) throw new Error('uid required');
@@ -144,25 +138,42 @@ export async function updateGoal(uid, goalId, updates = {}) {
   payload.updatedAt = serverTimestamp();
 
   await updateDoc(docRef, payload);
+
+  // MIRROR: try to update root /goals/{goalId} if it exists
+  try {
+    const rootRef = doc(db, 'goals', goalId);
+    // Use updateDoc (will fail if doc doesn't exist)
+    await updateDoc(rootRef, {
+      ...(payload.content !== undefined ? { content: payload.content } : {}),
+      ...(payload.utcDeadline !== undefined ? { utcDeadline: payload.utcDeadline } : {}),
+      ...(payload.status !== undefined ? { status: payload.status } : {}),
+      mirroredUpdatedAt: serverTimestamp()
+    });
+  } catch (e) {
+    // ignore; not critical
+    // console.debug('mirror update to /goals failed (may not exist) -', e?.message || e);
+  }
+
   return true;
 }
 
-/**
- * updateGoalStatus: compatibility signature updateGoalStatus(uid, goalId, newStatus)
- */
 export async function updateGoalStatus(uid, goalId, newStatus) {
-  // allow legacy call pattern updateGoalStatus(goalId, newStatus) - detect and throw helpful message
   if (typeof uid !== 'string') {
     throw new Error('updateGoalStatus signature changed: updateGoalStatus(uid, goalId, newStatus)');
   }
-  if (!['Need Help', 'Doing It', 'Done'].includes(newStatus)) {
-    throw new Error('invalid status');
-  }
+  if (!['Need Help', 'Doing It', 'Done'].includes(newStatus)) throw new Error('invalid status');
+
   const gDoc = doc(db, 'users', uid, 'goals', goalId);
-  await updateDoc(gDoc, {
-    status: newStatus,
-    updatedAt: serverTimestamp()
-  });
+  await updateDoc(gDoc, { status: newStatus, updatedAt: serverTimestamp() });
+
+  // MIRROR to root
+  try {
+    const rootRef = doc(db, 'goals', goalId);
+    await updateDoc(rootRef, { status: newStatus, mirroredUpdatedAt: serverTimestamp() });
+  } catch (e) {
+    // ignore
+  }
+
   return true;
 }
 
@@ -170,10 +181,13 @@ export async function softDeleteGoal(uid, goalId) {
   if (!uid) throw new Error('uid required');
   if (!goalId) throw new Error('goalId required');
   const gDoc = doc(db, 'users', uid, 'goals', goalId);
-  await updateDoc(gDoc, {
-    deleted: true,
-    updatedAt: serverTimestamp()
-  });
+  await updateDoc(gDoc, { deleted: true, updatedAt: serverTimestamp() });
+
+  // mirror (best-effort)
+  try {
+    const rootRef = doc(db, 'goals', goalId);
+    await updateDoc(rootRef, { deleted: true, mirroredUpdatedAt: serverTimestamp() });
+  } catch (e) {}
   return true;
 }
 
@@ -181,15 +195,16 @@ export async function undoDeleteGoal(uid, goalId) {
   if (!uid) throw new Error('uid required');
   if (!goalId) throw new Error('goalId required');
   const gDoc = doc(db, 'users', uid, 'goals', goalId);
-  await updateDoc(gDoc, {
-    deleted: false,
-    updatedAt: serverTimestamp()
-  });
+  await updateDoc(gDoc, { deleted: false, updatedAt: serverTimestamp() });
+
+  try {
+    const rootRef = doc(db, 'goals', goalId);
+    await updateDoc(rootRef, { deleted: false, mirroredUpdatedAt: serverTimestamp() });
+  } catch (e) {}
   return true;
 }
 
-/* ---------- Legacy root helpers (for migration) ---------- */
-
+/* legacy helper */
 export async function fetchAllGoalsRoot() {
   const rootCol = collection(db, 'goals');
   const snap = await getDocs(rootCol);
