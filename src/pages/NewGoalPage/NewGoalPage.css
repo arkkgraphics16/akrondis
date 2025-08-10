@@ -1,5 +1,4 @@
 /* src/pages/NewGoalPage/NewGoalPage.css */
-
 .new-goal-page {
   max-width: 700px;
   margin: 0 auto;
@@ -35,6 +34,15 @@
   flex-direction: column;
   gap: 0.5rem;
   font-weight: 500;
+}
+
+/* deadline instruction text */
+.deadline-instruction {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-style: italic;
+  margin-bottom: -0.25rem;
 }
 
 /* inputs, textarea, select */
@@ -100,15 +108,27 @@
 .calendar-btn {
   background: var(--surface-light);
   border: 1px solid #1e3a47;
-  color: var(--text-primary);
+  color: var(--primary);
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-width: 44px;
+  height: 44px;
 }
+
 .calendar-btn:hover:not(:disabled) {
-  filter: brightness(1.05);
+  background: var(--primary);
+  color: var(--text-primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.calendar-btn svg {
+  flex-shrink: 0;
 }
 
 /* textarea */
@@ -156,5 +176,7 @@
   }
   .calendar-btn {
     padding: 0.45rem;
+    min-width: 40px;
+    height: 40px;
   }
 }

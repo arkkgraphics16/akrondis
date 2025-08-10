@@ -78,6 +78,12 @@ export function NewGoalPage() {
     setLoading(false);
   };
 
+  const handleCalendarClick = () => {
+    if (dtRef.current) {
+      dtRef.current.showPicker?.();
+    }
+  };
+
   // ... rest unchanged ...
   return (
     <main className="page new-goal-page">
@@ -92,8 +98,36 @@ export function NewGoalPage() {
             <textarea value={content} onChange={e => setContent(e.target.value)} required />
           </label>
 
-          <label>Deadline *
-            <input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} required />
+          <label>
+            Deadline *
+            <div className="deadline-instruction">Pick a date & time</div>
+            <div className="datetime-wrap">
+              <input 
+                ref={dtRef}
+                type="datetime-local" 
+                value={deadline} 
+                onChange={e => setDeadline(e.target.value)} 
+                required 
+              />
+              <button 
+                type="button" 
+                className="calendar-btn" 
+                onClick={handleCalendarClick}
+                aria-label="Open date picker"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                  <circle cx="8" cy="14" r="1"></circle>
+                  <circle cx="12" cy="14" r="1"></circle>
+                  <circle cx="16" cy="14" r="1"></circle>
+                  <circle cx="8" cy="18" r="1"></circle>
+                  <circle cx="12" cy="18" r="1"></circle>
+                </svg>
+              </button>
+            </div>
           </label>
 
           <label>Type
