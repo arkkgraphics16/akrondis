@@ -92,7 +92,6 @@ header h1 {
 .content {
   display: flex;
   flex: 1;
-  padding-top: var(--header-height);
 }
 
 /* Sidebar - FIXED ON DESKTOP */
@@ -243,7 +242,7 @@ main {
   overflow-y: auto;
   min-height: calc(100vh - var(--header-height));
   margin-left: 250px; /* Account for fixed sidebar */
-  padding: 1rem; /* Consistent padding */
+  padding: 0.5rem 1rem; /* Top/bottom tight, sides normal */
 }
 
 /* links */
@@ -287,7 +286,7 @@ main {
   main {
     margin-left: 0;
     width: 100%;
-    padding: 0.75rem; /* Tight mobile padding */
+    padding: 0.25rem 0.75rem; /* Even tighter on mobile */
   }
 
   /* sidebar overlay under fixed header */
