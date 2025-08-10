@@ -1,3 +1,4 @@
+
 /* src/components/Layout/Layout.css */
 
 /* CSS Variables - Define your color scheme */
@@ -49,12 +50,9 @@ header {
   z-index: 1400;
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 1200px;
+  left: 0;
+  right: 0;
   height: var(--header-height);
-  border-radius: 0 0 8px 8px;
 }
 
 /* header-left */
@@ -112,7 +110,6 @@ header h1 {
   position: fixed;
   top: var(--header-height);
   left: 0;
-  border-radius: 0;
 }
 
 /* Make nav scrollable so footer stays pinned */
@@ -246,7 +243,6 @@ main {
   overflow-y: auto;
   min-height: calc(100vh - var(--header-height));
   padding: 0.5rem 1rem; /* Top/bottom tight, sides normal */
-  margin-left: 250px;
 }
 
 /* links */
@@ -303,19 +299,11 @@ main {
     transform: translateX(-100%); /* hidden by default */
     transition: transform 0.28s ease;
     box-shadow: 2px 0 12px rgba(0,0,0,0.35);
-    border-radius: 0;
   }
 
   /* visible state */
   .sidebar:not(.mobile-hidden) {
     transform: translateX(0);
-  }
-
-  header {
-    max-width: none;
-    left: 0;
-    transform: none;
-    border-radius: 0;
   }
 }
 
