@@ -69,7 +69,6 @@
 .goal-list {
   list-style: none;
   display: grid;
-  gap: 0.5rem;
 }
 
 /* Tighter gaps on mobile */
@@ -93,7 +92,7 @@
 }
 
 .goal-item {
-  padding: 0.5rem;
+  padding: 0.2rem;
   background: var(--surface-light);
   border-radius: 6px;
 }
