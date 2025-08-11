@@ -1,5 +1,5 @@
 // src/utils/firestoreService.js
-// Firestore v9 helpers - backward compatible and new users/{uid}/goals path
+// Updated to use Collection Group Queries for ListsPage
 
 import {
   collection,
@@ -10,7 +10,9 @@ import {
   Timestamp,
   doc,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  collectionGroup,  // ADD THIS IMPORT
+  orderBy
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 
@@ -32,20 +34,36 @@ function userGoalsCol(uid) {
   return collection(db, 'users', uid, 'goals');
 }
 
-/* ---------- Backwards-compatible root fetch (used by ListsPage) ---------- */
+/* ---------- UPDATED: Collection Group Query for all goals ---------- */
 
+/**
+ * fetchAllGoals() - Now uses Collection Group Query to get ALL goals from all users
+ * This queries across all users/{uid}/goals subcollections
+ */
 export async function fetchAllGoals() {
-  const rootCol = collection(db, 'goals');
-  const snap = await getDocs(rootCol);
+  // Collection Group Query: gets all 'goals' subcollections across all users
+  const goalsGroupQuery = query(
+    collectionGroup(db, 'goals'), 
+    where('deleted', '==', false),  // Only non-deleted goals
+    orderBy('createdAt', 'desc')    // Most recent first
+  );
+  
+  const snap = await getDocs(goalsGroupQuery);
   return snap.docs.map(docSnap => {
     const data = docSnap.data();
     return {
       id: docSnap.id,
       ...data,
-      utcDeadline:
-        data.utcDeadline && data.utcDeadline.toDate
-          ? data.utcDeadline.toDate().toISOString()
-          : data.utcDeadline
+      // Convert Firestore timestamps to ISO strings for compatibility
+      utcDeadline: data.utcDeadline && data.utcDeadline.toDate
+        ? data.utcDeadline.toDate().toISOString()
+        : data.utcDeadline,
+      createdAt: data.createdAt && data.createdAt.toDate
+        ? data.createdAt.toDate().toISOString()
+        : data.createdAt,
+      updatedAt: data.updatedAt && data.updatedAt.toDate
+        ? data.updatedAt.toDate().toISOString()
+        : data.updatedAt
     };
   });
 }
@@ -80,22 +98,12 @@ export async function addGoal(uidOrGoalData, maybeGoalData) {
     throw new Error('content is required');
   }
 
-  // If no uid available => fallback to legacy root collection behavior (keeps old clients working)
+  // If no uid available => throw error (no more legacy root collection)
   if (!uid) {
-    // convert deadline if present
-    const utcDeadlineTs = goalData.utcDeadline ? toTimestampOrNull(goalData.utcDeadline) : null;
-    const payload = {
-      ...goalData,
-      utcDeadline: utcDeadlineTs,
-      createdAt: Timestamp.now(),
-      // keep legacy key
-      userKey: goalData.ownerUid || goalData.uid || null
-    };
-    const ref = await addDoc(collection(db, 'goals'), payload);
-    return { id: ref.id, ...payload };
+    throw new Error('uid is required - legacy root collection no longer supported');
   }
 
-  // Preferred path: create under users/{uid}/goals
+  // Create under users/{uid}/goals
   const utcDeadlineTs = goalData.utcDeadline ? toTimestampOrNull(goalData.utcDeadline) : null;
   const payload = {
     content: goalData.content.trim(),
@@ -117,7 +125,11 @@ export async function addGoal(uidOrGoalData, maybeGoalData) {
  */
 export async function fetchGoalsByUser(uid) {
   if (!uid) throw new Error('uid required');
-  const q = query(userGoalsCol(uid), where('deleted', '==', false));
+  const q = query(
+    userGoalsCol(uid), 
+    where('deleted', '==', false),
+    orderBy('createdAt', 'desc')
+  );
   const snap = await getDocs(q);
   const out = [];
   snap.forEach(d => out.push({ id: d.id, ...d.data() }));
@@ -188,9 +200,10 @@ export async function undoDeleteGoal(uid, goalId) {
   return true;
 }
 
-/* ---------- Legacy root helpers (for migration) ---------- */
+/* ---------- Legacy root helpers (DEPRECATED - for migration only) ---------- */
 
 export async function fetchAllGoalsRoot() {
+  console.warn('fetchAllGoalsRoot is deprecated - use fetchAllGoals() which now uses Collection Group Query');
   const rootCol = collection(db, 'goals');
   const snap = await getDocs(rootCol);
   const out = [];
