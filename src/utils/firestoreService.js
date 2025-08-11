@@ -11,7 +11,7 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
-  collectionGroup,  // ADD THIS IMPORT
+  collectionGroup,
   orderBy
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
@@ -37,15 +37,14 @@ function userGoalsCol(uid) {
 /* ---------- UPDATED: Collection Group Query for all goals ---------- */
 
 /**
- * fetchAllGoals() - Now uses Collection Group Query to get ALL goals from all users
- * This queries across all users/{uid}/goals subcollections
+ * fetchAllGoals() - Uses Collection Group Query to get ALL goals from all users
+ * Returns goals with Timestamps converted to ISO strings for consistency
  */
 export async function fetchAllGoals() {
-  // Collection Group Query: gets all 'goals' subcollections across all users
   const goalsGroupQuery = query(
     collectionGroup(db, 'goals'), 
-    where('deleted', '==', false),  // Only non-deleted goals
-    orderBy('createdAt', 'desc')    // Most recent first
+    where('deleted', '==', false),
+    orderBy('createdAt', 'desc')
   );
   
   const snap = await getDocs(goalsGroupQuery);
@@ -54,7 +53,7 @@ export async function fetchAllGoals() {
     return {
       id: docSnap.id,
       ...data,
-      // Convert Firestore timestamps to ISO strings for compatibility
+      // Convert Firestore timestamps to ISO strings for consistency
       utcDeadline: data.utcDeadline && data.utcDeadline.toDate
         ? data.utcDeadline.toDate().toISOString()
         : data.utcDeadline,
@@ -110,6 +109,11 @@ export async function addGoal(uidOrGoalData, maybeGoalData) {
     utcDeadline: utcDeadlineTs,
     status: goalData.status || 'Doing It',
     uid: uid,
+    // Add these fields for display purposes
+    ownerDisplayName: goalData.ownerDisplayName || '',
+    discordNick: goalData.discordNick || '',
+    discordTag: goalData.discordTag || '',
+    type: goalData.type || 'One-Time',
     deleted: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -121,7 +125,7 @@ export async function addGoal(uidOrGoalData, maybeGoalData) {
 
 /**
  * fetchGoalsByUser(uid) - returns non-deleted goals under users/{uid}/goals
- * Timestamps are returned as Firestore Timestamps.
+ * Timestamps are converted to ISO strings for consistency.
  */
 export async function fetchGoalsByUser(uid) {
   if (!uid) throw new Error('uid required');
@@ -132,7 +136,23 @@ export async function fetchGoalsByUser(uid) {
   );
   const snap = await getDocs(q);
   const out = [];
-  snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  snap.forEach(d => {
+    const data = d.data();
+    out.push({ 
+      id: d.id, 
+      ...data,
+      // Convert Timestamps to ISO strings for consistency
+      utcDeadline: data.utcDeadline && data.utcDeadline.toDate
+        ? data.utcDeadline.toDate().toISOString()
+        : data.utcDeadline,
+      createdAt: data.createdAt && data.createdAt.toDate
+        ? data.createdAt.toDate().toISOString()
+        : data.createdAt,
+      updatedAt: data.updatedAt && data.updatedAt.toDate
+        ? data.updatedAt.toDate().toISOString()
+        : data.updatedAt
+    });
+  });
   return out;
 }
 

@@ -13,13 +13,13 @@ import { useAuth } from '../../components/Auth/AuthContext';
 import { useToast } from '../../components/Toast/ToastContext';
 import { Timestamp } from 'firebase/firestore';
 
-function DeadlineModal({ visible, initialTimestamp, onClose, onSave }) {
-  // initialTimestamp is a Firestore Timestamp or null fck
+function DeadlineModal({ visible, initialDeadline, onClose, onSave }) {
+  // initialDeadline is now an ISO string or null
   const [value, setValue] = useState('');
   useEffect(() => {
     if (!visible) return;
-    if (initialTimestamp && initialTimestamp.toMillis) {
-      const dt = new Date(initialTimestamp.toMillis());
+    if (initialDeadline) {
+      const dt = new Date(initialDeadline);
       // input type=datetime-local expects "yyyy-mm-ddThh:mm"
       const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
         .toISOString()
@@ -28,7 +28,7 @@ function DeadlineModal({ visible, initialTimestamp, onClose, onSave }) {
     } else {
       setValue('');
     }
-  }, [visible, initialTimestamp]);
+  }, [visible, initialDeadline]);
 
   if (!visible) return null;
 
@@ -48,7 +48,7 @@ function DeadlineModal({ visible, initialTimestamp, onClose, onSave }) {
               if (!value) return onSave(null);
               // convert local datetime-local value back to Date (treat as local)
               const date = new Date(value);
-              // Convert to real Date object (local->UTC is handled by Date)
+              // Convert to Timestamp for Firestore
               onSave(Timestamp.fromDate(date));
             }}
           >
@@ -66,6 +66,7 @@ export function MyGoalsPage() {
 
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [expandedGoals, setExpandedGoals] = useState(new Set());
 
   // per-item states
   const [savingIds, setSavingIds] = useState(new Set());
@@ -78,24 +79,13 @@ export function MyGoalsPage() {
   const undoTimeoutMs = 6000; // 6 seconds
 
   // handle msLeft input: accept either ISO string or Firestore Timestamp
-  const renderCountdown = utcISOorTimestamp => {
-    let ms;
-    try {
-      if (!utcISOorTimestamp) return 'No deadline';
-      if (utcISOorTimestamp.toMillis) {
-        // Firestore Timestamp
-        ms = msLeft(new Date(utcISOorTimestamp.toMillis()).toISOString());
-      } else {
-        // string
-        ms = msLeft(utcISOorTimestamp);
-      }
-      if (ms <= 0) return 'Expired';
-      const h = Math.floor(ms / 3_600_000);
-      const m = Math.floor((ms % 3_600_000) / 60_000);
-      return `${h}h ${m}m`;
-    } catch (e) {
-      return 'Invalid';
-    }
+  const renderCountdown = utcDeadlineValue => {
+    if (!utcDeadlineValue) return 'No deadline';
+    const ms = msLeft(utcDeadlineValue);
+    if (ms <= 0) return 'Expired';
+    const h = Math.floor(ms / 3_600_000);
+    const m = Math.floor((ms % 3_600_000) / 60_000);
+    return `${h}h ${m}m`;
   };
 
   const load = async uid => {
@@ -125,6 +115,23 @@ export function MyGoalsPage() {
       n.delete(id);
       return n;
     });
+
+  // Content expansion functions
+  const toggleGoalExpansion = (goalId) => {
+    const newExpanded = new Set(expandedGoals);
+    if (newExpanded.has(goalId)) {
+      newExpanded.delete(goalId);
+    } else {
+      newExpanded.add(goalId);
+    }
+    setExpandedGoals(newExpanded);
+  };
+
+  const isGoalExpanded = (goalId) => expandedGoals.has(goalId);
+
+  const shouldShowExpandButton = (content) => {
+    return content.length > 80 || content.includes('\n');
+  };
 
   const changeStatus = async (goalId, newStatus) => {
     if (!user) return;
@@ -307,23 +314,37 @@ export function MyGoalsPage() {
             const isDim = isSaving || isDeleting;
             return (
               <li key={g.id} className={`goal-item ${isDim ? 'dim' : ''}`}>
-                <div className="content" onClick={() => startEditContent(g)}>
-                  {editingContentId === g.id ? (
-                    <input
-                      autoFocus
-                      value={editingContentValue}
-                      onChange={e => setEditingContentValue(e.target.value)}
-                      onBlur={() => saveContent(g)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          saveContent(g);
-                        } else if (e.key === 'Escape') {
-                          cancelEditContent();
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span>{g.content}</span>
+                <div className="content-container">
+                  <div 
+                    className={`content ${isGoalExpanded(g.id) ? 'expanded' : 'truncated'}`}
+                    onClick={() => startEditContent(g)}
+                  >
+                    {editingContentId === g.id ? (
+                      <input
+                        autoFocus
+                        value={editingContentValue}
+                        onChange={e => setEditingContentValue(e.target.value)}
+                        onBlur={() => saveContent(g)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            saveContent(g);
+                          } else if (e.key === 'Escape') {
+                            cancelEditContent();
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span>{g.content}</span>
+                    )}
+                  </div>
+                  {shouldShowExpandButton(g.content) && editingContentId !== g.id && (
+                    <button 
+                      className="expand-button"
+                      onClick={() => toggleGoalExpansion(g.id)}
+                      aria-label={isGoalExpanded(g.id) ? 'Collapse goal' : 'Expand goal'}
+                    >
+                      {isGoalExpanded(g.id) ? '↑' : '↓'}
+                    </button>
                   )}
                 </div>
 
@@ -362,7 +383,7 @@ export function MyGoalsPage() {
 
       <DeadlineModal
         visible={!!deadlineModalGoal}
-        initialTimestamp={deadlineModalGoal ? deadlineModalGoal.utcDeadline : null}
+        initialDeadline={deadlineModalGoal ? deadlineModalGoal.utcDeadline : null}
         onClose={closeDeadlineModal}
         onSave={(ts) => saveDeadline(deadlineModalGoal, ts)}
       />

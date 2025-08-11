@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './NewGoalPage.css';
-import { msLeft } from '../../utils/timeUtils';   // ← new helper
 import { addGoal } from '../../utils/firestoreService';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { useToast } from '../../components/Toast/ToastContext';
@@ -14,7 +13,6 @@ export function NewGoalPage() {
   const { user, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  const [discordName, setName] = useState('');
   const [content, setContent] = useState('');
   const [deadline, setDeadline] = useState('');
   const [type, setType] = useState('One-Time');
@@ -26,8 +24,7 @@ export function NewGoalPage() {
     const saved = localStorage.getItem(DRAFT_KEY);
     if (saved) {
       try {
-        const { discordName, content, deadline, type } = JSON.parse(saved);
-        setName(discordName || '');
+        const { content, deadline, type } = JSON.parse(saved);
         setContent(content || '');
         setDeadline(deadline || '');
         setType(type || 'One-Time');
@@ -36,9 +33,9 @@ export function NewGoalPage() {
   }, []);
 
   useEffect(() => {
-    const draft = { discordName, content, deadline, type };
+    const draft = { content, deadline, type };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  }, [discordName, content, deadline, type]);
+  }, [content, deadline, type]);
 
   const validate = () => {
     if (!user) return 'Please sign in with Google first';
@@ -57,20 +54,20 @@ export function NewGoalPage() {
     setError('');
     setLoading(true);
     try {
-      // Store the raw local ISO string
-      await addGoal({
-        ownerUid: user.uid,
-        ownerDisplayName: user.displayName || user.email || 'NoName',
-        discordNick: user.discordNick || discordName || '',
+      await addGoal(user.uid, {
         content,
-        utcDeadline: deadline,     // ← local ISO string
+        utcDeadline: deadline,
         status: 'Doing It',
+        ownerDisplayName: user.displayName || user.email || 'NoName',
+        discordNick: '', // Empty since we removed the field
         type
       });
       localStorage.removeItem(DRAFT_KEY);
-      setContent(''); setDeadline(''); setName('');
+      setContent(''); 
+      setDeadline(''); 
+      setType('One-Time');
       addToast('Goal added successfully!');
-      navigate('/lists');
+      navigate('/my-goals');
     } catch (e) {
       console.error(e);
       setError('Save failed, try again');
@@ -84,18 +81,28 @@ export function NewGoalPage() {
     }
   };
 
-  // ... rest unchanged ...
+  if (!user) {
+    return (
+      <main className="page new-goal-page">
+        <h1>Create New Goal</h1>
+        <p>You must sign in with Google to create goals.</p>
+        <button onClick={() => signInWithGoogle()}>Sign in with Google</button>
+      </main>
+    );
+  }
+
   return (
     <main className="page new-goal-page">
       <h1>Create New Goal</h1>
       <form onSubmit={handleSubmit}>
         <fieldset disabled={loading}>
-          <label>Discord Nick (optional)
-            <input value={discordName} onChange={e => setName(e.target.value)} placeholder="optional: arkk" />
-          </label>
-
           <label>Goal Content *
-            <textarea value={content} onChange={e => setContent(e.target.value)} required />
+            <textarea 
+              value={content} 
+              onChange={e => setContent(e.target.value)} 
+              required 
+              placeholder="What do you want to accomplish?"
+            />
           </label>
 
           <label>

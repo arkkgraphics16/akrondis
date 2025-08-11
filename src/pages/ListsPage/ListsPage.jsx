@@ -20,21 +20,20 @@ export function ListsPage() {
   }, []);
 
   const filterByTab = goal => {
-    // Hide expired goals
-    if (msLeft(goal.utcDeadline) <= 0) return false;
-    
+    // Don't hide expired goals - show all like MyGoalsPage
     if (activeTab === 'All') return true;
     return goal.type === activeTab;
   };
 
   const sortByTimeLeft = (a, b) => {
-    const msA = msLeft(a.utcDeadline);
-    const msB = msLeft(b.utcDeadline);
+    const msA = msLeft(a.utcDeadline) || Infinity; // No deadline = far future
+    const msB = msLeft(b.utcDeadline) || Infinity;
     return msA - msB; // Ascending: closest deadline first
   };
 
-  const renderCountdown = utcISO => {
-    const ms = msLeft(utcISO);
+  const renderCountdown = utcDeadlineValue => {
+    if (!utcDeadlineValue) return 'No deadline';
+    const ms = msLeft(utcDeadlineValue);
     if (ms <= 0) return 'Expired';
     const h = Math.floor(ms / 3_600_000);
     const m = Math.floor((ms % 3_600_000) / 60_000);
