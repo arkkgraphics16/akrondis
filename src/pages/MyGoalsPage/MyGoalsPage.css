@@ -48,6 +48,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.goal-item.editing {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
 
 @media (max-width: 640px) {
@@ -62,11 +68,151 @@
   }
 }
 
+/* Content container - handles both display and editing */
+.content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .goal-item .content {
   margin-bottom: .25rem;
   font-size: 1.05rem;
   color: var(--text-primary);
   word-break: break-word;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.goal-item .content:hover:not(.editing) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.goal-item .content.truncated {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.goal-item .content.expanded {
+  display: block;
+}
+
+/* Edit form styling */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.edit-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #1e3a47;
+  border-radius: 6px;
+  background: var(--surface-light);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.deadline-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.deadline-input-group label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.deadline-input-group input[type="datetime-local"] {
+  padding: 0.75rem;
+  border: 1px solid #1e3a47;
+  border-radius: 6px;
+  background: var(--surface-light);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.deadline-input-group input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.edit-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.edit-form-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.edit-form-actions .save-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.edit-form-actions .cancel-btn {
+  background: #64748b;
+  color: white;
+}
+
+.edit-form-actions button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.edit-form-actions button:active {
+  transform: translateY(0);
+}
+
+/* Expand button */
+.expand-button {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.15s ease;
+}
+
+.expand-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
 }
 
 .goal-item .meta {
@@ -90,7 +236,7 @@
 /* status colors (use palette-friendly tones) */
 .status.doingit  { background: #64748b; } /* muted gray-blue */
 .status.needhelp { background: #dc2626; } /* red */
-.status.done     { background: #16a34a; } /* green */
+.status.done     { background: #0ea5e9; } /* green */
 
 /* actions (buttons row) */
 .actions {
@@ -122,11 +268,21 @@
 }
 .actions button.miss {
   background: #64748b; /* Doing It - muted gray */
-  color: var(--text-primary);
+  color: var(--bg);
 }
 .actions button.done {
-  background: #16a34a; /* Done - green */
+  background: #0ea5e9;  /* Done - green */
   color: var(--text-primary);
+}
+
+.actions button.edit-deadline {
+  background: #94a3b8;/* Edit - blue */
+  color: var(--bg);
+}
+
+.actions button.delete {
+  background: #94a3b8; /* Delete - red */
+  color: var(--bg);
 }
 
 /* hover / active */
@@ -150,6 +306,14 @@
     padding: 0.45rem 0.6rem; 
     font-size: 0.8rem; 
   }
+  
+  .edit-form-actions {
+    justify-content: stretch;
+  }
+  
+  .edit-form-actions button {
+    flex: 1;
+  }
 }
 
 @media (max-width: 480px) {
@@ -161,6 +325,46 @@
     font-size: 0.75rem; 
     letter-spacing: 0.3px;
   }
+  
+  .edit-form {
+    padding: 0.75rem;
+  }
+  
+  .edit-form textarea {
+    min-height: 60px;
+  }
+}
+
+/* Undo banner */
+.undo-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-light);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.undo-banner button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: filter 0.15s ease;
+}
+
+.undo-banner button:hover {
+  filter: brightness(1.1);
 }
 
 /* keep old tiny tweak */

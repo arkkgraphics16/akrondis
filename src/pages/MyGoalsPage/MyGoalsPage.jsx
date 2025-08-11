@@ -13,53 +13,6 @@ import { useAuth } from '../../components/Auth/AuthContext';
 import { useToast } from '../../components/Toast/ToastContext';
 import { Timestamp } from 'firebase/firestore';
 
-function DeadlineModal({ visible, initialDeadline, onClose, onSave }) {
-  // initialDeadline is now an ISO string or null
-  const [value, setValue] = useState('');
-  useEffect(() => {
-    if (!visible) return;
-    if (initialDeadline) {
-      const dt = new Date(initialDeadline);
-      // input type=datetime-local expects "yyyy-mm-ddThh:mm"
-      const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16);
-      setValue(local);
-    } else {
-      setValue('');
-    }
-  }, [visible, initialDeadline]);
-
-  if (!visible) return null;
-
-  return (
-    <div className="modal-backdrop">
-      <div className="modal">
-        <h3>Edit deadline</h3>
-        <input
-          type="datetime-local"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-        />
-        <div className="modal-actions">
-          <button onClick={onClose}>Cancel</button>
-          <button
-            onClick={() => {
-              if (!value) return onSave(null);
-              // convert local datetime-local value back to Date (treat as local)
-              const date = new Date(value);
-              // Convert to Timestamp for Firestore
-              onSave(Timestamp.fromDate(date));
-            }}
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function MyGoalsPage() {
   const { user, signInWithGoogle } = useAuth();
   const addToast = useToast();
@@ -71,9 +24,9 @@ export function MyGoalsPage() {
   // per-item states
   const [savingIds, setSavingIds] = useState(new Set());
   const [deletingIds, setDeletingIds] = useState(new Set());
-  const [editingContentId, setEditingContentId] = useState(null);
-  const [editingContentValue, setEditingContentValue] = useState('');
-  const [deadlineModalGoal, setDeadlineModalGoal] = useState(null); // goal object
+  const [editingGoalId, setEditingGoalId] = useState(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [editingDeadline, setEditingDeadline] = useState('');
   const [lastDeleted, setLastDeleted] = useState(null); // { goal, timerId }
 
   const undoTimeoutMs = 6000; // 6 seconds
@@ -151,81 +104,78 @@ export function MyGoalsPage() {
     }
   };
 
-  // Inline content edit: save on blur or Enter
-  const startEditContent = (goal) => {
-    setEditingContentId(goal.id);
-    setEditingContentValue(goal.content);
+  // Combined editing functions
+  const startEditGoal = (goal) => {
+    setEditingGoalId(goal.id);
+    setEditingContent(goal.content);
+    
+    // Convert deadline to datetime-local format
+    if (goal.utcDeadline) {
+      const dt = goal.utcDeadline.toDate ? goal.utcDeadline.toDate() : new Date(goal.utcDeadline);
+      const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+      setEditingDeadline(local);
+    } else {
+      setEditingDeadline('');
+    }
   };
 
-  const cancelEditContent = () => {
-    setEditingContentId(null);
-    setEditingContentValue('');
+  const cancelEdit = () => {
+    setEditingGoalId(null);
+    setEditingContent('');
+    setEditingDeadline('');
   };
 
-  const saveContent = async (goal) => {
+  const saveGoalChanges = async (goal) => {
     if (!user) return;
-    const trimmed = editingContentValue?.trim() ?? '';
-    if (!trimmed) {
+    const trimmedContent = editingContent?.trim() ?? '';
+    if (!trimmedContent) {
       addToast && addToast('Content cannot be empty');
       return;
     }
 
+    // Process deadline
+    let newTimestamp = null;
+    if (editingDeadline) {
+      const date = new Date(editingDeadline);
+      newTimestamp = Timestamp.fromDate(date);
+    }
+
+    // Determine new status per rule A:
+    // if new deadline is in the future and current status !== 'Done' => 'Doing It'
+    const nowTs = Timestamp.now();
+    const willBeFuture = newTimestamp && newTimestamp.toMillis() > nowTs.toMillis();
+    const newStatus = willBeFuture && goal.status !== 'Done' ? 'Doing It' : goal.status;
+
     const prev = goals;
     // optimistic update locally
-    setGoals(g => g.map(x => (x.id === goal.id ? { ...x, content: trimmed } : x)));
+    setGoals(g => g.map(x => (x.id === goal.id ? {
+      ...x,
+      content: trimmedContent,
+      utcDeadline: newTimestamp,
+      status: newStatus
+    } : x)));
+    
     addIdToSet(setSavingIds, goal.id);
-    setEditingContentId(null);
+    setEditingGoalId(null);
+    setEditingContent('');
+    setEditingDeadline('');
+
     try {
-      await updateGoal(user.uid, goal.id, { content: trimmed });
-      addToast && addToast('Saved');
+      const updates = {
+        content: trimmedContent,
+        utcDeadline: newTimestamp || null
+      };
+      if (newStatus !== goal.status) {
+        updates.status = newStatus;
+      }
+      await updateGoal(user.uid, goal.id, updates);
+      addToast && addToast('Goal updated successfully');
     } catch (e) {
       console.error(e);
       setGoals(prev);
       addToast && addToast('Save failed');
-    } finally {
-      removeIdFromSet(setSavingIds, goal.id);
-    }
-  };
-
-  // open modal to edit deadline
-  const openDeadlineModal = (goal) => {
-    setDeadlineModalGoal(goal);
-  };
-
-  const closeDeadlineModal = () => setDeadlineModalGoal(null);
-
-  const saveDeadline = async (goal, newTimestamp) => {
-    if (!user) return;
-    closeDeadlineModal();
-
-    // determine new status per rule A:
-    // if new deadline is in the future and current status !== 'Done' => 'Doing It'
-    const nowTs = Timestamp.now();
-    const willBeFuture = newTimestamp && newTimestamp.toMillis
-      ? newTimestamp.toMillis() > nowTs.toMillis()
-      : false;
-
-    const newStatus = willBeFuture && goal.status !== 'Done' ? 'Doing It' : goal.status;
-
-    const prev = goals;
-    // optimistic local update
-    setGoals(g => g.map(x => x.id === goal.id ? {
-      ...x,
-      utcDeadline: newTimestamp,
-      status: newStatus
-    } : x));
-
-    addIdToSet(setSavingIds, goal.id);
-    try {
-      const updates = {};
-      updates.utcDeadline = newTimestamp || null;
-      if (newStatus !== goal.status) updates.status = newStatus;
-      await updateGoal(user.uid, goal.id, updates);
-      addToast && addToast('Deadline updated');
-    } catch (e) {
-      console.error(e);
-      setGoals(prev);
-      addToast && addToast('Update failed');
     } finally {
       removeIdFromSet(setSavingIds, goal.id);
     }
@@ -311,40 +261,70 @@ export function MyGoalsPage() {
           {goals.map(g => {
             const isSaving = savingIds.has(g.id);
             const isDeleting = deletingIds.has(g.id);
+            const isEditing = editingGoalId === g.id;
             const isDim = isSaving || isDeleting;
+            
             return (
-              <li key={g.id} className={`goal-item ${isDim ? 'dim' : ''}`}>
+              <li key={g.id} className={`goal-item ${isDim ? 'dim' : ''} ${isEditing ? 'editing' : ''}`}>
                 <div className="content-container">
-                  <div 
-                    className={`content ${isGoalExpanded(g.id) ? 'expanded' : 'truncated'}`}
-                    onClick={() => startEditContent(g)}
-                  >
-                    {editingContentId === g.id ? (
-                      <input
+                  {isEditing ? (
+                    // Edit form for both content and deadline
+                    <div className="edit-form">
+                      <textarea
                         autoFocus
-                        value={editingContentValue}
-                        onChange={e => setEditingContentValue(e.target.value)}
-                        onBlur={() => saveContent(g)}
+                        value={editingContent}
+                        onChange={e => setEditingContent(e.target.value)}
+                        placeholder="Enter your goal..."
                         onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            saveContent(g);
-                          } else if (e.key === 'Escape') {
-                            cancelEditContent();
+                          if (e.key === 'Escape') {
+                            cancelEdit();
                           }
                         }}
                       />
-                    ) : (
-                      <span>{g.content}</span>
-                    )}
-                  </div>
-                  {shouldShowExpandButton(g.content) && editingContentId !== g.id && (
-                    <button 
-                      className="expand-button"
-                      onClick={() => toggleGoalExpansion(g.id)}
-                      aria-label={isGoalExpanded(g.id) ? 'Collapse goal' : 'Expand goal'}
-                    >
-                      {isGoalExpanded(g.id) ? '↑' : '↓'}
-                    </button>
+                      
+                      <div className="deadline-input-group">
+                        <label>Deadline (optional)</label>
+                        <input
+                          type="datetime-local"
+                          value={editingDeadline}
+                          onChange={e => setEditingDeadline(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="edit-form-actions">
+                        <button 
+                          className="cancel-btn"
+                          onClick={cancelEdit}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          className="save-btn"
+                          onClick={() => saveGoalChanges(g)}
+                          disabled={!editingContent.trim()}
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Display mode
+                    <>
+                      <div 
+                        className={`content ${isGoalExpanded(g.id) ? 'expanded' : 'truncated'}`}
+                      >
+                        <span>{g.content}</span>
+                      </div>
+                      {shouldShowExpandButton(g.content) && (
+                        <button 
+                          className="expand-button"
+                          onClick={() => toggleGoalExpansion(g.id)}
+                          aria-label={isGoalExpanded(g.id) ? 'Collapse goal' : 'Expand goal'}
+                        >
+                          {isGoalExpanded(g.id) ? 'Show less ↑' : 'Show more ↓'}
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -355,21 +335,21 @@ export function MyGoalsPage() {
 
                 <div className="actions">
                   {isSaving && <Spinner small />}
-                  <button className="help" disabled={isSaving || isDeleting} onClick={() => changeStatus(g.id, 'Need Help')}>HELP</button>
-                  <button className="miss" disabled={isSaving || isDeleting} onClick={() => changeStatus(g.id, 'Doing It')}>MISS</button>
-                  <button className="done" disabled={isSaving || isDeleting} onClick={() => changeStatus(g.id, 'Done')}>DONE</button>
+                  <button className="help" disabled={isSaving || isDeleting || isEditing} onClick={() => changeStatus(g.id, 'Need Help')}>HELP</button>
+                  <button className="miss" disabled={isSaving || isDeleting || isEditing} onClick={() => changeStatus(g.id, 'Doing It')}>MISS</button>
+                  <button className="done" disabled={isSaving || isDeleting || isEditing} onClick={() => changeStatus(g.id, 'Done')}>DONE</button>
 
                   <button
                     className="edit-deadline"
                     disabled={isSaving || isDeleting}
-                    onClick={() => openDeadlineModal(g)}
+                    onClick={() => isEditing ? cancelEdit() : startEditGoal(g)}
                   >
-                    Edit
+                    {isEditing ? 'Cancel' : 'Edit'}
                   </button>
 
                   <button
                     className="delete"
-                    disabled={isSaving || isDeleting}
+                    disabled={isSaving || isDeleting || isEditing}
                     onClick={() => handleSoftDelete(g)}
                   >
                     Delete
@@ -381,20 +361,13 @@ export function MyGoalsPage() {
         </ul>
       )}
 
-      <DeadlineModal
-        visible={!!deadlineModalGoal}
-        initialDeadline={deadlineModalGoal ? deadlineModalGoal.utcDeadline : null}
-        onClose={closeDeadlineModal}
-        onSave={(ts) => saveDeadline(deadlineModalGoal, ts)}
-      />
-
       {/* Undo banner */}
       {lastDeleted && (
         <div className="undo-banner">
           <span>Goal deleted</span>
           <button onClick={handleUndoDelete}>Undo</button>
         </div>
-      )}
+        )}
     </main>
   );
 }
