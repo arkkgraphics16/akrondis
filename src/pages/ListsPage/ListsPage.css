@@ -155,25 +155,24 @@
   border-radius: 3px;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem; /* slightly larger to fit text */
+  font-size: 0.85rem;
   line-height: 1;
   transition: all 0.2s;
   flex-shrink: 0;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  display: flex;
+  min-width: auto; /* allow to grow for "Show more" text */
+  height: auto;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap; /* keep arrow and text on one line */
 }
 
-/* Smaller expand button on mobile */
+/* Smaller expand button on small screens */
 @media (max-width: 480px) {
   .expand-button {
-    padding: 0.15rem 0.3rem;
+    padding: 0.15rem 0.4rem;
     font-size: 0.75rem;
-    min-width: 1.3rem;
-    height: 1.3rem;
   }
 }
 
