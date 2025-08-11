@@ -20,6 +20,18 @@ export function NewGoalPage() {
   const [loading, setLoading] = useState(false);
   const dtRef = useRef(null);
 
+  // textarea auto-resize
+  const textareaRef = useRef(null);
+  const MAX_TEXTAREA_HEIGHT = 480; // ~20 lines
+
+  const autoResizeTextarea = () => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    const newHeight = Math.min(ta.scrollHeight, MAX_TEXTAREA_HEIGHT);
+    ta.style.height = `${newHeight}px`;
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem(DRAFT_KEY);
     if (saved) {
@@ -32,6 +44,11 @@ export function NewGoalPage() {
     }
   }, []);
 
+  // resize when content changes (and after draft load)
+  useEffect(() => {
+    requestAnimationFrame(autoResizeTextarea);
+  }, [content]);
+
   useEffect(() => {
     const draft = { content, deadline, type };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -41,7 +58,7 @@ export function NewGoalPage() {
     if (!user) return 'Please sign in with Google first';
     if (!content.trim()) return 'Goal content required';
     if (!deadline) return 'Deadline required';
-    const ms = new Date(deadline) - Date.now();            
+    const ms = new Date(deadline) - Date.now();
     if (ms <= 0) return "Deadline can't be in the past";
     return '';
   };
@@ -63,8 +80,8 @@ export function NewGoalPage() {
         type
       });
       localStorage.removeItem(DRAFT_KEY);
-      setContent(''); 
-      setDeadline(''); 
+      setContent('');
+      setDeadline('');
       setType('One-Time');
       addToast('Goal added successfully!');
       navigate('/my-goals');
@@ -97,10 +114,15 @@ export function NewGoalPage() {
       <form onSubmit={handleSubmit}>
         <fieldset disabled={loading}>
           <label>Goal Content *
-            <textarea 
-              value={content} 
-              onChange={e => setContent(e.target.value)} 
-              required 
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={e => {
+                setContent(e.target.value);
+                // resize on input
+                requestAnimationFrame(autoResizeTextarea);
+              }}
+              required
               placeholder="What do you want to accomplish?"
             />
           </label>
@@ -109,16 +131,16 @@ export function NewGoalPage() {
             Deadline *
             <div className="deadline-instruction">Pick a date & time</div>
             <div className="datetime-wrap">
-              <input 
+              <input
                 ref={dtRef}
-                type="datetime-local" 
-                value={deadline} 
-                onChange={e => setDeadline(e.target.value)} 
-                required 
+                type="datetime-local"
+                value={deadline}
+                onChange={e => setDeadline(e.target.value)}
+                required
               />
-              <button 
-                type="button" 
-                className="calendar-btn" 
+              <button
+                type="button"
+                className="calendar-btn"
                 onClick={handleCalendarClick}
                 aria-label="Open date picker"
               >
@@ -147,7 +169,7 @@ export function NewGoalPage() {
         </fieldset>
 
         {error && <p className="error">{error}</p>}
-        <button type="submit">{loading ? <Spinner /> : 'Save Goal'}</button>
+        <button type="submit" disabled={loading}>{loading ? <Spinner /> : 'Save Goal'}</button>
       </form>
     </main>
   );
