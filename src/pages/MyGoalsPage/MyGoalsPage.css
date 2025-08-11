@@ -5,7 +5,8 @@
   padding: 0; /* Remove all padding - main handles it */
   background: transparent; /* Blend with main bg */
   min-height: calc(100vh - var(--header-height));
-  padding-top: 70px; 
+  padding-top: 70px;
+  overflow-x: hidden; /* prevent horizontal overflow at page level */
 }
 
 /* tag form */
@@ -41,6 +42,7 @@
 
 /* item card - RESPONSIVE PADDING */
 .goal-item {
+  width: 100%;
   padding: 1rem;
   background: var(--surface-light);
   border-radius: 8px;
@@ -49,6 +51,7 @@
   flex-direction: column;
   gap: 0.75rem;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .goal-item.editing {
@@ -57,14 +60,14 @@
 }
 
 @media (max-width: 640px) {
-  .goal-item { 
-    padding: 0.75rem; 
+  .goal-item {
+    padding: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
-  .goal-item { 
-    padding: 0.5rem; 
+  .goal-item {
+    padding: 0.5rem;
   }
 }
 
@@ -73,6 +76,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+  box-sizing: border-box;
 }
 
 .goal-item .content {
@@ -88,6 +95,7 @@
   border-radius: 6px;
   transition: background-color 0.2s ease;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 .goal-item .content:hover:not(.editing) {
@@ -117,15 +125,19 @@
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  max-width: 100%;
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
   box-sizing: border-box;
 }
 
 /* textarea tweak: auto-resize up to ~20 lines, no horizontal overflow */
 .edit-form textarea {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 72px;            /* start small */
-  max-height: 480px;          /* ~20 lines */
+  max-height: 480px;           /* ~20 lines */
   padding: 0.75rem;
   border: 1px solid #1e3a47;
   border-radius: 6px;
@@ -134,12 +146,12 @@
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.5;
-  resize: vertical;           /* allow vertical resize only */
-  overflow-y: auto;           /* vertical scroll if > 20 lines */
-  overflow-x: hidden;         /* prevent horizontal overflow */
+  resize: vertical;            /* allow vertical resize only */
+  overflow-y: auto;            /* vertical scroll if > 20 lines */
+  overflow-x: hidden;          /* prevent horizontal overflow */
   box-sizing: border-box;
   word-wrap: break-word;
-  white-space: pre-wrap;      /* preserve newlines but wrap long lines */
+  white-space: pre-wrap;       /* preserve newlines but wrap long lines */
   word-break: break-word;
 }
 
@@ -237,6 +249,7 @@
   font-size: .85rem;
   color: var(--text-secondary);
   align-items: center;
+  flex-wrap: wrap;
 }
 
 /* status badge */
@@ -260,6 +273,7 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 /* base button style inside actions */
@@ -275,6 +289,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 /* individual button colors */
@@ -315,37 +330,37 @@
 
 /* Mobile responsive buttons */
 @media (max-width: 640px) {
-  .actions { 
-    gap: 0.4rem; 
+  .actions {
+    gap: 0.4rem;
   }
-  .actions button { 
-    padding: 0.45rem 0.6rem; 
-    font-size: 0.8rem; 
+  .actions button {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.8rem;
   }
-  
+
   .edit-form-actions {
     justify-content: stretch;
   }
-  
+
   .edit-form-actions button {
     flex: 1;
   }
 }
 
 @media (max-width: 480px) {
-  .actions { 
-    gap: 0.3rem; 
+  .actions {
+    gap: 0.3rem;
   }
-  .actions button { 
-    padding: 0.4rem 0.5rem; 
-    font-size: 0.75rem; 
+  .actions button {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
     letter-spacing: 0.3px;
   }
-  
+
   .edit-form {
     padding: 0.75rem;
   }
-  
+
   .edit-form textarea {
     min-height: 60px;
   }
@@ -381,6 +396,36 @@
 
 .undo-banner button:hover {
   filter: brightness(1.1);
+}
+
+/* -------- FIX: make edit form occupy full card width and prevent horizontal overflow -------- */
+
+/* ensure the card and its inner containers can stretch fully */
+.goal-item,
+.goal-item .content-container,
+.goal-item .content,
+.goal-item .edit-form {
+  width: 100%;
+  min-width: 0; /* important for flex children to allow shrinking properly */
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+/* ensure textarea never overflows horizontally and uses available width */
+.edit-form textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;      /* no horizontal scrollbar */
+  word-break: break-word;
+  white-space: pre-wrap;
+  box-sizing: border-box;
+}
+
+/* small safety: make sure actions row doesn't force layout overflow */
+.actions {
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 /* keep old tiny tweak */
