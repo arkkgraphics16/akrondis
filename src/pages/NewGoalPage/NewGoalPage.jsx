@@ -59,7 +59,7 @@ export function NewGoalPage() {
         utcDeadline: deadline,
         status: 'Doing It',
         ownerDisplayName: user.displayName || user.email || 'NoName',
-        discordNick: '', // Empty since we removed the field
+        discordNick: user.discordNick || '',
         type
       });
       localStorage.removeItem(DRAFT_KEY);

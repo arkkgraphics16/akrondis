@@ -19,11 +19,13 @@ export function ListsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filterByTab = goal => {
-    // Don't hide expired goals - show all like MyGoalsPage
-    if (activeTab === 'All') return true;
-    return goal.type === activeTab;
-  };
+const filterByTab = goal => {
+  const ms = msLeft(goal.utcDeadline);
+  if (ms !== null && ms <= 0) return false;
+  
+  if (activeTab === 'All') return true;
+  return goal.type === activeTab;
+};
 
   const sortByTimeLeft = (a, b) => {
     const msA = msLeft(a.utcDeadline) || Infinity; // No deadline = far future
