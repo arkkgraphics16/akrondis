@@ -31,6 +31,25 @@ export function MyGoalsPage() {
 
   const undoTimeoutMs = 6000; // 6 seconds
 
+  // textarea auto-resize
+  const textareaRef = useRef(null);
+  const MAX_TEXTAREA_HEIGHT = 480; // ~ 20 lines (approx)
+
+  const autoResizeTextarea = () => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    const newHeight = Math.min(ta.scrollHeight, MAX_TEXTAREA_HEIGHT);
+    ta.style.height = `${newHeight}px`;
+  };
+
+  // when entering edit state, adjust height
+  useEffect(() => {
+    if (editingGoalId) {
+      requestAnimationFrame(autoResizeTextarea);
+    }
+  }, [editingGoalId]);
+
   // handle msLeft input: accept either ISO string or Firestore Timestamp
   const renderCountdown = utcDeadlineValue => {
     if (!utcDeadlineValue) return 'No deadline';
@@ -108,7 +127,7 @@ export function MyGoalsPage() {
   const startEditGoal = (goal) => {
     setEditingGoalId(goal.id);
     setEditingContent(goal.content);
-    
+
     // Convert deadline to datetime-local format
     if (goal.utcDeadline) {
       const dt = goal.utcDeadline.toDate ? goal.utcDeadline.toDate() : new Date(goal.utcDeadline);
@@ -119,6 +138,11 @@ export function MyGoalsPage() {
     } else {
       setEditingDeadline('');
     }
+
+    // ensure textarea resized after state updates
+    requestAnimationFrame(() => {
+      requestAnimationFrame(autoResizeTextarea);
+    });
   };
 
   const cancelEdit = () => {
@@ -156,7 +180,7 @@ export function MyGoalsPage() {
       utcDeadline: newTimestamp,
       status: newStatus
     } : x)));
-    
+
     addIdToSet(setSavingIds, goal.id);
     setEditingGoalId(null);
     setEditingContent('');
@@ -263,17 +287,21 @@ export function MyGoalsPage() {
             const isDeleting = deletingIds.has(g.id);
             const isEditing = editingGoalId === g.id;
             const isDim = isSaving || isDeleting;
-            
+
             return (
               <li key={g.id} className={`goal-item ${isDim ? 'dim' : ''} ${isEditing ? 'editing' : ''}`}>
                 <div className="content-container">
                   {isEditing ? (
-                    // Edit form for both content and deadline
+                    // Edit form for both content and deadline — no Save/Cancel here
                     <div className="edit-form">
                       <textarea
+                        ref={textareaRef}
                         autoFocus
                         value={editingContent}
-                        onChange={e => setEditingContent(e.target.value)}
+                        onChange={e => {
+                          setEditingContent(e.target.value);
+                          requestAnimationFrame(autoResizeTextarea);
+                        }}
                         placeholder="Enter your goal..."
                         onKeyDown={e => {
                           if (e.key === 'Escape') {
@@ -281,7 +309,7 @@ export function MyGoalsPage() {
                           }
                         }}
                       />
-                      
+
                       <div className="deadline-input-group">
                         <label>Deadline (optional)</label>
                         <input
@@ -290,33 +318,19 @@ export function MyGoalsPage() {
                           onChange={e => setEditingDeadline(e.target.value)}
                         />
                       </div>
-                      
-                      <div className="edit-form-actions">
-                        <button 
-                          className="cancel-btn"
-                          onClick={cancelEdit}
-                        >
-                          Cancel
-                        </button>
-                        <button 
-                          className="save-btn"
-                          onClick={() => saveGoalChanges(g)}
-                          disabled={!editingContent.trim()}
-                        >
-                          Save Changes
-                        </button>
-                      </div>
+
+                      {/* bottom actions removed; top actions show CANCEL & SAVE */}
                     </div>
                   ) : (
                     // Display mode
                     <>
-                      <div 
+                      <div
                         className={`content ${isGoalExpanded(g.id) ? 'expanded' : 'truncated'}`}
                       >
                         <span>{g.content}</span>
                       </div>
                       {shouldShowExpandButton(g.content) && (
-                        <button 
+                        <button
                           className="expand-button"
                           onClick={() => toggleGoalExpansion(g.id)}
                           aria-label={isGoalExpanded(g.id) ? 'Collapse goal' : 'Expand goal'}
@@ -335,25 +349,51 @@ export function MyGoalsPage() {
 
                 <div className="actions">
                   {isSaving && <Spinner small />}
+
+                  {/* Status buttons stay visible but are disabled while editing */}
                   <button className="help" disabled={isSaving || isDeleting || isEditing} onClick={() => changeStatus(g.id, 'Need Help')}>HELP</button>
                   <button className="miss" disabled={isSaving || isDeleting || isEditing} onClick={() => changeStatus(g.id, 'Doing It')}>MISS</button>
                   <button className="done" disabled={isSaving || isDeleting || isEditing} onClick={() => changeStatus(g.id, 'Done')}>DONE</button>
 
-                  <button
-                    className="edit-deadline"
-                    disabled={isSaving || isDeleting}
-                    onClick={() => isEditing ? cancelEdit() : startEditGoal(g)}
-                  >
-                    {isEditing ? 'Cancel' : 'EDIT'}
-                  </button>
+                  {isEditing ? (
+                    // When editing: CANCEL and SAVE (replace EDIT | DELETE)
+                    <>
+                      <button
+                        className="edit-deadline"
+                        onClick={cancelEdit}
+                      >
+                        CANCEL
+                      </button>
 
-                  <button
-                    className="delete"
-                    disabled={isSaving || isDeleting || isEditing}
-                    onClick={() => handleSoftDelete(g)}
-                  >
-                    DELETE
-                  </button>
+                      <button
+                        className="save-btn"
+                        onClick={() => saveGoalChanges(g)}
+                        disabled={!editingContent.trim() || isSaving}
+                        style={{ cursor: (!editingContent.trim() || isSaving) ? 'not-allowed' : 'pointer' }}
+                      >
+                        SAVE
+                      </button>
+                    </>
+                  ) : (
+                    // Normal mode: EDIT | DELETE
+                    <>
+                      <button
+                        className="edit-deadline"
+                        disabled={isSaving || isDeleting}
+                        onClick={() => startEditGoal(g)}
+                      >
+                        EDIT
+                      </button>
+
+                      <button
+                        className="delete"
+                        disabled={isSaving || isDeleting || isEditing}
+                        onClick={() => handleSoftDelete(g)}
+                      >
+                        DELETE
+                      </button>
+                    </>
+                  )}
                 </div>
               </li>
             );
@@ -367,7 +407,7 @@ export function MyGoalsPage() {
           <span>Goal deleted</span>
           <button onClick={handleUndoDelete}>Undo</button>
         </div>
-        )}
+      )}
     </main>
   );
 }

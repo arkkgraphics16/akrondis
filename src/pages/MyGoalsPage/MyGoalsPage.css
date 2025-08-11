@@ -121,10 +121,11 @@
   box-sizing: border-box;
 }
 
+/* textarea tweak: auto-resize up to ~20 lines, no horizontal overflow */
 .edit-form textarea {
   width: 100%;
-  min-height: 120px;
-  max-height: 300px;
+  min-height: 72px;            /* start small */
+  max-height: 480px;          /* ~20 lines */
   padding: 0.75rem;
   border: 1px solid #1e3a47;
   border-radius: 6px;
@@ -133,11 +134,13 @@
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.5;
-  resize: vertical;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;           /* allow vertical resize only */
+  overflow-y: auto;           /* vertical scroll if > 20 lines */
+  overflow-x: hidden;         /* prevent horizontal overflow */
   box-sizing: border-box;
   word-wrap: break-word;
-  overflow-wrap: break-word;
+  white-space: pre-wrap;      /* preserve newlines but wrap long lines */
+  word-break: break-word;
 }
 
 .edit-form textarea:focus {
