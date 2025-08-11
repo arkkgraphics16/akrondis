@@ -344,7 +344,7 @@ export function MyGoalsPage() {
                     disabled={isSaving || isDeleting}
                     onClick={() => isEditing ? cancelEdit() : startEditGoal(g)}
                   >
-                    {isEditing ? 'Cancel' : 'Edit'}
+                    {isEditing ? 'Cancel' : 'EDIT'}
                   </button>
 
                   <button
@@ -352,7 +352,7 @@ export function MyGoalsPage() {
                     disabled={isSaving || isDeleting || isEditing}
                     onClick={() => handleSoftDelete(g)}
                   >
-                    Delete
+                    DELETE
                   </button>
                 </div>
               </li>
