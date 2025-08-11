@@ -31,6 +31,14 @@ export function MyGoalsPage() {
 
   const undoTimeoutMs = 6000; // 6 seconds
 
+  // realtime tick for countdowns (updates seconds)
+  const [tick, setTick] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setTick(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
   // textarea auto-resize
   const textareaRef = useRef(null);
   const MAX_TEXTAREA_HEIGHT = 480; // ~ 20 lines (approx)
@@ -51,13 +59,35 @@ export function MyGoalsPage() {
   }, [editingGoalId]);
 
   // handle msLeft input: accept either ISO string or Firestore Timestamp
+  // New: follow same display logic as ListsPage — omit zeroed units and show seconds when under an hour
   const renderCountdown = utcDeadlineValue => {
     if (!utcDeadlineValue) return 'No deadline';
     const ms = msLeft(utcDeadlineValue);
+    if (ms === null) return 'No deadline';
     if (ms <= 0) return 'Expired';
-    const h = Math.floor(ms / 3_600_000);
-    const m = Math.floor((ms % 3_600_000) / 60_000);
-    return `${h}h ${m}m`;
+
+    const days = Math.floor(ms / 86_400_000);
+    const hours = Math.floor((ms % 86_400_000) / 3_600_000);
+    const minutes = Math.floor((ms % 3_600_000) / 60_000);
+    const seconds = Math.floor((ms % 60_000) / 1000);
+
+    if (days > 0) {
+      // show days, hours, minutes (no seconds)
+      return `${days}d ${hours}h ${minutes}m`;
+    }
+
+    if (hours > 0) {
+      // show hours, minutes (no seconds)
+      return `${hours}h ${minutes}m`;
+    }
+
+    if (minutes > 0) {
+      // show minutes and seconds
+      return `${minutes}m ${seconds}s`;
+    }
+
+    // only seconds left
+    return `${seconds}s`;
   };
 
   const load = async uid => {
@@ -319,7 +349,7 @@ export function MyGoalsPage() {
                         />
                       </div>
 
-                      {/* bottom actions removed; top actions show CANCEL & SAVE */}
+                      {/* bottom actions are shown in .actions (kept for parity) */}
                     </div>
                   ) : (
                     // Display mode
@@ -335,7 +365,7 @@ export function MyGoalsPage() {
                           onClick={() => toggleGoalExpansion(g.id)}
                           aria-label={isGoalExpanded(g.id) ? 'Collapse goal' : 'Expand goal'}
                         >
-                          {isGoalExpanded(g.id) ? 'Show less ↑' : 'Show more ↓'}
+                          {isGoalExpanded(g.id) ? 'Show less ▲' : 'Show more ▼'}
                         </button>
                       )}
                     </>

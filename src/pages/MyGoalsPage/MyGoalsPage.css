@@ -189,6 +189,7 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
 
+/* Actions row (bottom of card) */
 .edit-form-actions {
   display: flex;
   gap: 0.5rem;
@@ -206,26 +207,7 @@
   transition: all 0.15s ease;
 }
 
-.edit-form-actions .save-btn {
-  background: var(--primary);
-  color: white;
-}
-
-.edit-form-actions .cancel-btn {
-  background: #64748b;
-  color: white;
-}
-
-.edit-form-actions button:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-}
-
-.edit-form-actions button:active {
-  transform: translateY(0);
-}
-
-/* Expand button */
+/* Expand button (now allows the longer label) */
 .expand-button {
   align-self: flex-start;
   background: rgba(255, 255, 255, 0.1);
@@ -233,9 +215,10 @@
   border-radius: 4px;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .expand-button:hover {
@@ -274,6 +257,7 @@
   margin-top: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
+  box-sizing: border-box;
 }
 
 /* base button style inside actions */
@@ -347,16 +331,36 @@
   }
 }
 
-@media (max-width: 480px) {
-  .actions {
-    gap: 0.3rem;
-  }
-  .actions button {
-    padding: 0.4rem 0.5rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.3px;
+/* When editing on mobile, pin the action row to bottom so CANCEL/SAVE are always visible.
+   Keep desktop/tablet unchanged. */
+@media (max-width: 640px) {
+  .goal-item.editing .actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.75rem;
+    background: var(--surface);
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 2000;
+    box-shadow: 0 -8px 18px rgba(0,0,0,0.45);
   }
 
+  /* make buttons stretch a bit so they are easy to tap */
+  .goal-item.editing .actions button {
+    flex: 1;
+    margin: 0 0.25rem;
+  }
+
+  /* reserve space at bottom of the card so content isn't covered by the fixed footer */
+  .goal-item.editing {
+    padding-bottom: 5.25rem; /* (~actions height + gap) */
+  }
+
+  /* slightly reduce edit form padding on very small screens */
   .edit-form {
     padding: 0.75rem;
   }
