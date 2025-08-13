@@ -1,0 +1,117 @@
+# Privacy Policy
+
+**Effective Date: January 1, 2025**  
+**Last Updated: January 1, 2025**
+
+## 1. Introduction
+
+Welcome to Akrondis ("we," "our," or "us"). This Privacy Policy explains how Akrondis Company, based in the Philippines, collects, uses, and protects your information when you use our countdown converter service for Discord accountability groups.
+
+## 2. Information We Collect
+
+### 2.1 Information You Provide
+- **Google Account Information**: When you sign in with Google, we collect your email address, display name, and profile photo
+- **Discord Nickname**: Your Discord username for accountability tracking
+- **Goal Data**: UTC timestamps and goal information you submit for countdown conversion
+- **Usage Data**: How you interact with our service
+
+### 2.2 Automatically Collected Information
+- **Technical Data**: IP address, browser type, device information
+- **Usage Analytics**: Pages visited, features used, session duration
+- **Cookies**: Essential cookies for authentication and preferences
+
+## 3. How We Use Your Information
+
+We use your information to:
+- **Provide Service**: Convert UTC timestamps to Discord-formatted countdowns
+- **Account Management**: Maintain your user account and preferences
+- **Authentication**: Verify your identity through Google Sign-In
+- **Discord Integration**: Associate your goals with your Discord nickname
+- **Service Improvement**: Analyze usage to enhance our features
+- **Security**: Protect against unauthorized access and abuse
+
+## 4. Information Sharing
+
+We do not sell, trade, or rent your personal information. We may share information only in these limited circumstances:
+
+- **With Your Consent**: When you explicitly agree to sharing
+- **Legal Compliance**: If required by law, regulation, or legal process
+- **Service Providers**: Third-party services that help us operate (Google for authentication)
+- **Safety**: To protect the rights, property, or safety of Akrondis, our users, or others
+
+## 5. Data Storage and Security
+
+- **Location**: Data is stored on secure servers provided by Vercel and Google Firebase
+- **Security Measures**: We implement industry-standard security practices including encryption, secure authentication, and access controls
+- **Retention**: We retain your data only as long as necessary to provide our services or as required by law
+- **Backup**: Regular backups ensure service continuity while maintaining security
+
+## 6. Your Rights and Choices
+
+You have the right to:
+- **Access**: Request a copy of your personal data
+- **Correction**: Update or correct inaccurate information
+- **Deletion**: Request deletion of your account and associated data
+- **Portability**: Export your data in a machine-readable format
+- **Opt-out**: Decline certain data collection or processing activities
+
+To exercise these rights, contact us at privacy@akrondis.com
+
+## 7. Cookies and Tracking
+
+We use essential cookies for:
+- **Authentication**: Maintaining your login session
+- **Preferences**: Remembering your settings
+- **Security**: Protecting against cross-site request forgery
+
+We do not use tracking cookies for advertising purposes.
+
+## 8. Third-Party Services
+
+Our service integrates with:
+- **Google Services**: For authentication and account management
+- **Discord**: For countdown formatting (no direct API integration)
+- **Vercel**: For hosting and content delivery
+
+These services have their own privacy policies that govern their data practices.
+
+## 9. Children's Privacy
+
+Akrondis is not intended for use by individuals under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such information, we will take steps to delete it promptly.
+
+## 10. International Data Transfers
+
+As a Philippines-based company, your data may be processed in the Philippines or other countries where our service providers operate. We ensure appropriate safeguards are in place for international transfers.
+
+## 11. Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time. When we do:
+- We will post the updated policy on our website
+- We will update the "Last Updated" date
+- For significant changes, we will notify users via email or in-app notification
+
+## 12. Contact Information
+
+For privacy-related questions or concerns:
+
+**Akrondis Company**  
+Email: privacy@akrondis.com  
+Support: support@akrondis.com  
+Address: Philippines
+
+## 13. Data Protection Officer
+
+For data protection inquiries specific to the Philippines Data Privacy Act of 2012:
+Email: dpo@akrondis.com
+
+## 14. Compliance
+
+This Privacy Policy complies with:
+- Philippines Data Privacy Act of 2012
+- General Data Protection Regulation (GDPR) for EU users
+- California Consumer Privacy Act (CCPA) for California residents
+- Other applicable privacy laws and regulations
+
+---
+
+*This Privacy Policy is part of our Terms of Service. By using Akrondis, you agree to both documents.*

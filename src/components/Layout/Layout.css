@@ -393,3 +393,24 @@ main {
 .nick-box button:last-child:hover {
   background: #2563eb;
 }
+
+.legal-links {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legal-link {
+  font-size: 0.85rem;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.legal-link:hover {
+  color: #333;
+  text-decoration: underline;
+}

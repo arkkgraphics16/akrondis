@@ -112,11 +112,33 @@ export function Layout() {
                     Log Out
                   </button>
                 </div>
+
+                {/* Legal Links - only show when logged in */}
+                <div className="legal-links">
+                  <NavLink to="/privacy-policy" onClick={() => setSidebarOpen(false)} className="legal-link">
+                    Privacy Policy
+                  </NavLink>
+                  <NavLink to="/terms-of-service" onClick={() => setSidebarOpen(false)} className="legal-link">
+                    Terms of Service
+                  </NavLink>
+                </div>
               </>
             ) : (
-              <button onClick={() => { setSidebarOpen(false); signInWithGoogle(); }} className="auth-btn primary">
-                Sign in with Google
-              </button>
+              <>
+                <button onClick={() => { setSidebarOpen(false); signInWithGoogle(); }} className="auth-btn primary">
+                  Sign in with Google
+                </button>
+                
+                {/* Legal Links - show even when not logged in */}
+                <div className="legal-links">
+                  <NavLink to="/privacy-policy" onClick={() => setSidebarOpen(false)} className="legal-link">
+                    Privacy Policy
+                  </NavLink>
+                  <NavLink to="/terms-of-service" onClick={() => setSidebarOpen(false)} className="legal-link">
+                    Terms of Service
+                  </NavLink>
+                </div>
+              </>
             )}
           </div>
         </aside>
