@@ -278,16 +278,16 @@
 
 /* individual button colors */
 .actions button.help {
-  background: #dc2626; /* Need Help - red */
-  color: var(--text-primary);
+  background:#94a3b8; /* Need Help - red */
+  color: var(--bg);
 }
 .actions button.miss {
-  background: #64748b; /* Doing It - muted gray */
-  color: var(--text-primary);
+  background:  #94a3b8;/* Doing It - muted gray */
+  color: var(--bg);
 }
 .actions button.done {
-  background: #0ea5e9;  /* Done - blue */
-  color: var(--text-primary);
+  background: #94a3b8; /* Done - blue */
+  color: var(--bg);
 }
 
 .actions button.edit-deadline {
