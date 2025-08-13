@@ -19,7 +19,6 @@ export function Layout() {
     }
   }, [user]);
 
-  // prevent background scroll when mobile sidebar open
   useEffect(() => {
     const isMobile = window.innerWidth <= 768;
     if (sidebarOpen && isMobile) {
@@ -27,7 +26,6 @@ export function Layout() {
     } else {
       document.body.classList.remove('no-scroll');
     }
-    // cleanup on unmount
     return () => document.body.classList.remove('no-scroll');
   }, [sidebarOpen]);
 
@@ -60,7 +58,6 @@ export function Layout() {
         </div>
       </header>
 
-      {/* backdrop for mobile overlay; clicking closes sidebar */}
       <div
         className={`backdrop ${sidebarOpen ? 'visible' : ''}`}
         onClick={() => setSidebarOpen(false)}
@@ -74,11 +71,9 @@ export function Layout() {
               <li><NavLink to="/lists" onClick={() => setSidebarOpen(false)}>Lists</NavLink></li>
               <li><NavLink to="/new-goal" onClick={() => setSidebarOpen(false)}>New Goal</NavLink></li>
               <li><NavLink to="/my-goals" onClick={() => setSidebarOpen(false)}>My Goals</NavLink></li>
-              {/* add more items here */}
             </ul>
           </nav>
 
-          {/* Bottom area in sidebar */}
           <div className="sidebar-footer">
             {user ? (
               <>
@@ -113,7 +108,6 @@ export function Layout() {
                   </button>
                 </div>
 
-                {/* Legal Links - only show when logged in */}
                 <div className="legal-links">
                   <NavLink to="/privacy-policy" onClick={() => setSidebarOpen(false)} className="legal-link">
                     Privacy Policy
@@ -129,7 +123,6 @@ export function Layout() {
                   Sign in with Google
                 </button>
                 
-                {/* Legal Links - show even when not logged in */}
                 <div className="legal-links">
                   <NavLink to="/privacy-policy" onClick={() => setSidebarOpen(false)} className="legal-link">
                     Privacy Policy

@@ -7,6 +7,8 @@ import { AuthProvider } from './components/Auth/AuthContext';
 import { ListsPage } from './pages/ListsPage/ListsPage';
 import { NewGoalPage } from './pages/NewGoalPage/NewGoalPage';
 import { MyGoalsPage } from './pages/MyGoalsPage/MyGoalsPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicy/PrivacyPolicyPage';
+import { TermsOfServicePage } from './pages/TermsOfService/TermsOfServicePage';
 
 export function App() {
   return (
@@ -19,6 +21,8 @@ export function App() {
               <Route path="/lists" element={<ListsPage />} />
               <Route path="/new-goal" element={<NewGoalPage />} />
               <Route path="/my-goals" element={<MyGoalsPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms-of-service" element={<TermsOfServicePage />} />
             </Route>
           </Routes>
         </ToastProvider>
