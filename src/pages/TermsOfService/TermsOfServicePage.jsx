@@ -1,6 +1,6 @@
 // src/pages/TermsOfService/TermsOfService.jsx
 import React from 'react';
-import './Policy.css'; // reuse same small style
+import './TermsOfServicePage.css';
 
 export default function TermsOfService() {
   return (

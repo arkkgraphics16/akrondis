@@ -1,6 +1,6 @@
 // src/pages/PrivacyPolicy/PrivacyPolicy.jsx
 import React from 'react';
-import './Policy.css'; // optional shared policy styles (see below)
+import '../LegalPage.css';
 
 export default function PrivacyPolicy() {
   return (
