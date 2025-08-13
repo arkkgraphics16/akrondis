@@ -6,8 +6,10 @@ import { AuthProvider } from './components/Auth/AuthContext';
 import { ListsPage } from './pages/ListsPage/ListsPage';
 import { NewGoalPage } from './pages/NewGoalPage/NewGoalPage';
 import { MyGoalsPage } from './pages/MyGoalsPage/MyGoalsPage';
-import PrivacyPolicyPage from './pages/PrivacyPolicy/PrivacyPolicyPage';
-import TermsOfService from './pages/TermsOfService/TermsOfService';
+
+/* Use explicit .jsx imports so Vite/Rollup resolves them reliably */
+import PrivacyPolicyPage from './pages/PrivacyPolicy/PrivacyPolicyPage.jsx';
+import TermsOfService from './pages/TermsOfService/TermsOfService.jsx';
 
 export function App() {
   return (
