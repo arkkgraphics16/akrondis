@@ -9,7 +9,7 @@ import { MyGoalsPage } from './pages/MyGoalsPage/MyGoalsPage';
 
 /* Use explicit .jsx imports so Vite/Rollup resolves them reliably */
 import PrivacyPolicyPage from './pages/PrivacyPolicy/PrivacyPolicyPage.jsx';
-import TermsOfService from './pages/TermsOfService/TermsOfService.jsx';
+import TermsOfService from './pages/TermsOfService/TermsOfServicePage.jsx';
 
 export function App() {
   return (
